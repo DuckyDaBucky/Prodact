@@ -4,7 +4,9 @@ import {
   ChartColumnIncreasing,
   LayoutDashboard,
   ReceiptText,
+  Send,
   Settings,
+  Store,
   Tags,
 } from "lucide-react";
 
@@ -35,9 +37,21 @@ export const navItems = [
   },
   {
     href: "/alerts",
-    label: "Alerts",
-    description: "Placeholder for notification logic",
+    label: "Notifications",
+    description: "Product and social notification center",
     icon: Bell,
+  },
+  {
+    href: "/messages",
+    label: "Messages",
+    description: "Search and review faculty conversations",
+    icon: Send,
+  },
+  {
+    href: "/store-layout",
+    label: "Store Layout",
+    description: "Compare current and recommended floor plans",
+    icon: Store,
   },
   {
     href: "/reports",
