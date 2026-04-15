@@ -3,6 +3,7 @@ import {
   Boxes,
   ChartColumnIncreasing,
   LayoutDashboard,
+  MessageSquareMore,
   ReceiptText,
   Settings,
   Tags,
@@ -32,6 +33,12 @@ export const navItems = [
     label: "Product Analysis",
     description: "Placeholder for future analytics pages",
     icon: ChartColumnIncreasing,
+  },
+  {
+    href: "/messages",
+    label: "Messages",
+    description: "Inbox and team communication workspace",
+    icon: MessageSquareMore,
   },
   {
     href: "/alerts",
