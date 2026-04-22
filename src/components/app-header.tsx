@@ -18,7 +18,7 @@ export function AppHeader({ session }: AppHeaderProps) {
         </div>
         <div>
           <h1 className="font-[family-name:var(--font-heading)] text-2xl font-semibold tracking-tight text-[var(--target-ink)]">
-            Welcome back, {session.user.employeeId}
+            Welcome back, {session.user.name || session.user.employeeId}
           </h1>
           <p className="mt-1 text-sm text-[var(--muted)]">
             This boilerplate protects the core navigation and gives your team a shared shell for PA4 feature work.

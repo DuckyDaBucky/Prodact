@@ -11,6 +11,7 @@ function buildInternalEmail(employeeId: string) {
 
 export function SignupForm() {
   const router = useRouter();
+  const [name, setName] = useState("");
   const [employeeId, setEmployeeId] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -24,7 +25,7 @@ export function SignupForm() {
     const normalizedEmployeeId = employeeId.trim();
 
     const result = await authClient.signUp.email({
-      name: `Employee ${normalizedEmployeeId}`,
+      name: name.trim(),
       email: buildInternalEmail(normalizedEmployeeId),
       password,
       username: normalizedEmployeeId,
@@ -46,6 +47,21 @@ export function SignupForm() {
 
   return (
     <form className="space-y-5" onSubmit={handleSubmit}>
+      <div className="space-y-2">
+        <label className="text-sm font-semibold text-[var(--target-ink)]" htmlFor="signup-name">
+          Full name
+        </label>
+        <input
+          id="signup-name"
+          name="signup-name"
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+          placeholder="Jordan Lee"
+          autoComplete="name"
+          className="w-full rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-base outline-none transition focus:border-[var(--target-red)] focus:ring-4 focus:ring-red-100"
+          required
+        />
+      </div>
       <div className="space-y-2">
         <label className="text-sm font-semibold text-[var(--target-ink)]" htmlFor="signup-employee-id">
           Employee ID
