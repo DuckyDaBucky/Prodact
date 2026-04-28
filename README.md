@@ -7,14 +7,16 @@ Prodact is the Group 10 PA4 starter application for a Target-style internal prod
 - Supports employee ID login with Better Auth
 - Provides a hidden signup route for school-project demo accounts
 - Uses Neon Postgres with Drizzle ORM and committed migrations
+- Seeds Target sample product data into Neon with a repeatable script
 - Protects internal pages behind session checks
 - Includes a branded internal app shell with sidebar and logout
-- Exposes empty placeholder pages for future feature work
+- Exposes a seeded Product Analysis page with heuristic AI recommendations
+- Keeps the remaining internal pages as placeholders for future feature work
 - Documents how teammates should extend the project safely
 
 ## What This Repo Does Not Do Yet
 
-- No AI, forecasting, sentiment analysis, or advanced recommendation logic
+- No real LLM provider wired in yet, only a heuristic recommendation engine
 - No real POS, inventory, ERP, or competitor API integrations
 - No deep role-based access control beyond storing a `role`
 - No production deployment automation yet
@@ -32,6 +34,7 @@ This is deliberate. The repo is meant to remove setup friction first.
 - Neon Postgres
 - Drizzle ORM
 - Drizzle Kit
+- csv-parse
 - Tailwind CSS v4
 - Lucide icons
 
@@ -69,11 +72,12 @@ The app is organized around three layers:
 - `/inventory`
 - `/pricing`
 - `/product-analysis`
+  - Seeded Target product analysis and heuristic AI recommendations
 - `/alerts`
 - `/reports`
 - `/settings`
 
-These protected pages are intentionally placeholders. They are meant to be built out by teammates later.
+The Product Analysis route now has seeded demo functionality. The remaining protected pages are intentionally placeholders for future teammate work.
 
 ## Authentication Design
 
@@ -118,6 +122,8 @@ The committed schema currently includes the Better Auth core tables:
 - `session`
 - `account`
 - `verification`
+- `target_product`
+- `recommendation_run`
 
 The generated Drizzle schema lives in:
 
@@ -185,19 +191,27 @@ Then add your real Neon credentials and auth values.
 npm run db:migrate
 ```
 
+### 4. Seed the Target sample dataset
+
+```bash
+npm run db:seed
+```
+
+This downloads the public Target sample CSV from GitHub and upserts the rows into the `target_product` table.
+
 If you change the schema later, generate a new migration first:
 
 ```bash
 npm run db:generate
 ```
 
-### 4. Start the app
+### 5. Start the app
 
 ```bash
 npm run dev
 ```
 
-### 5. Open the app
+### 6. Open the app
 
 - main login page: `http://localhost:3000/login`
 - hidden signup page: `http://localhost:3000/internal-signup`
@@ -252,11 +266,20 @@ If that flow works, the basic auth shell is healthy.
 - `src/db/index.ts`
   - Neon + Drizzle connection
 - `src/db/schema.ts`
-  - generated auth schema
+  - auth tables plus Target product and recommendation tables
 - `drizzle.config.ts`
   - migration config
 - `drizzle/`
   - generated SQL migrations
+- `scripts/seed-target-products.ts`
+  - downloads and seeds the Target sample CSV
+
+### Documents
+
+- `documents/implementation-actual.md`
+- `documents/implementation-ideal.md`
+- `documents/deployment-actual.md`
+- `documents/deployment-ideal.md`
 
 ### Static assets
 
@@ -273,6 +296,7 @@ If a teammate is joining the project and wants the shortest path to understandin
 4. `src/components/app-sidebar.tsx`
 5. `src/db/schema.ts`
 6. `README.md`
+7. `src/lib/recommendations.ts`
 
 ## How To Extend the App Safely
 
@@ -362,10 +386,21 @@ Recommended workflow:
   - generate a new Drizzle migration after schema edits
 - `npm run db:migrate`
   - apply migrations to the configured database
+- `npm run db:seed`
+  - download and seed the Target sample dataset into Neon
 - `npm run db:studio`
   - open Drizzle Studio
 - `npm run check`
   - run lint and build together
+
+## Documents
+
+The root `documents/` folder contains paired writeups for the current codebase and the ideal future state:
+
+- `implementation-actual.md`
+- `implementation-ideal.md`
+- `deployment-actual.md`
+- `deployment-ideal.md`
 
 ## Branding Notes
 
@@ -384,8 +419,8 @@ If the team receives an official asset later, replace this file and keep the sam
 - No password reset flow
 - No real employee directory or admin provisioning
 - No fine-grained authorization yet
-- Feature pages are placeholders only
-- No analytics engine yet
+- Most feature pages are still placeholders
+- No advanced analytics engine beyond the seeded recommendation demo yet
 
 These are acceptable tradeoffs for the current class-project milestone.
 
