@@ -2,6 +2,7 @@ import {
   Bell,
   Boxes,
   ChartColumnIncreasing,
+  Crosshair,
   LayoutDashboard,
   ReceiptText,
   Send,
@@ -28,6 +29,12 @@ export const navItems = [
     label: "Pricing",
     description: "Placeholder for competitor pricing work",
     icon: Tags,
+  },
+  {
+    href: "/competitor-analysis",
+    label: "Competitor Analysis",
+    description: "Location-level competitor insights and AI actions",
+    icon: Crosshair,
   },
   {
     href: "/product-analysis",
