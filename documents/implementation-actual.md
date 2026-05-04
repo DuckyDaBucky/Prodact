@@ -44,3 +44,23 @@
 - The recommendation service lives in `src/lib/recommendations.ts` and combines category similarity, pricing proximity, ratings, and dataset-provided recommendation hints.
 - The API layer exposes recommendations through `src/app/api/recommendations/[productId]/route.ts`.
 - The UI surface for this feature is the updated `src/app/(app)/product-analysis/page.tsx`, which reads seeded products and renders explainable recommendations for a selected SKU.
+
+## PA4 MVP Service Mapping
+
+- Web Scraper Service:
+  `scripts/seed-target-products.ts` is the reliable scraping and ingestion MVP. It downloads the public Target product dataset, parses CSV rows, normalizes product attributes, and upserts batches into Postgres. It avoids brittle live page scraping while still proving repeatable external-data ingestion.
+- Database Service:
+  `src/db/schema.ts`, Drizzle migrations, and `src/db/index.ts` define and connect the Neon Postgres data layer. The `target_product` table stores imported product records, while `recommendation_run` stores generated AI Recommendation results for traceability.
+- Authentication Service:
+  `src/lib/auth.ts`, `src/lib/session.ts`, `/login`, and `/internal-signup` implement employee ID authentication with Better Auth. The protected `(app)` layout requires a valid session before users can access dashboard, Product Analysis, and other internal routes.
+- AI Recommendation Service:
+  `src/lib/recommendations.ts` implements the `heuristic-v1` provider. It ranks candidate products by category overlap, price proximity, shopper rating quality, and dataset recommendation hints, then persists each run.
+- Demo Evidence:
+  `/dashboard` includes PA4 MVP service cards for the four assigned services, and `/product-analysis` demonstrates the Database and AI Recommendation services using seeded Target product rows.
+
+## Test Cases for PA4 Evidence
+
+- Web Scraper: run `npm run db:seed` and verify the console reports processed, inserted, updated, skipped, and elapsed counts.
+- Database: run `npm run db:migrate`, then confirm Product Analysis can read seeded records from `target_product`.
+- Authentication: create a demo account through `/internal-signup`, log out, log back in through `/login`, and confirm protected routes redirect unauthenticated users.
+- AI Recommendation: open `/product-analysis`, select a product, confirm recommendation cards show scores and reasons, and call `GET /api/recommendations/[productId]?limit=5` for JSON output.

@@ -3,8 +3,10 @@ import Link from "next/link";
 import { ProductPicker } from "@/components/product-picker";
 import {
   getFirstTargetProduct,
+  getLatestRecommendationRun,
   listTargetProductsForPicker,
   recommendationService,
+  type TargetProductRecord,
 } from "@/lib/recommendations";
 
 type ProductAnalysisPageProps = {
@@ -30,11 +32,53 @@ function formatCurrency(amount: string | null, currency: string | null) {
   }).format(parsedAmount);
 }
 
+function formatNumber(value: number | null) {
+  return new Intl.NumberFormat("en-US").format(value ?? 0);
+}
+
 function formatTimestamp(value: Date) {
   return new Intl.DateTimeFormat("en-US", {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(value);
+}
+
+function toNumber(value: string | null) {
+  if (!value) {
+    return null;
+  }
+
+  const parsed = Number.parseFloat(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function calculateDiscountPercent(product: TargetProductRecord) {
+  const initialPrice = toNumber(product.initialPrice);
+  const finalPrice = toNumber(product.finalPrice);
+
+  if (!initialPrice || !finalPrice || initialPrice <= finalPrice) {
+    return null;
+  }
+
+  return Math.round(((initialPrice - finalPrice) / initialPrice) * 100);
+}
+
+function calculateCompleteness(product: TargetProductRecord) {
+  const fields = [
+    product.title,
+    product.productDescription,
+    product.rating,
+    product.reviewsCount,
+    product.finalPrice,
+    product.primaryCategory,
+    product.images[0],
+    product.summaryOfReviews,
+  ];
+  const completeFields = fields.filter(
+    (field) => field !== null && field !== undefined && field !== "",
+  ).length;
+
+  return Math.round((completeFields / fields.length) * 100);
 }
 
 export default async function ProductAnalysisPage({
@@ -56,8 +100,8 @@ export default async function ProductAnalysisPage({
             Seed the Target sample data first
           </h2>
           <p className="max-w-3xl text-sm leading-6 text-(--muted)">
-            This page becomes active after the new Drizzle tables are migrated and populated with
-            the Bright Data Target sample.
+            This page becomes active after the Drizzle migrations are applied and the Web Scraper
+            Service imports the Target product dataset.
           </p>
         </div>
         <div className="rounded-[1.6rem] border border-dashed border-red-200 bg-red-50/60 p-6 text-sm leading-6 text-(--muted)">
@@ -72,6 +116,10 @@ export default async function ProductAnalysisPage({
     limit: 5,
   });
   const { sourceProduct, recommendations, provider, generatedAt } = recommendationResult;
+  const latestRun = await getLatestRecommendationRun(sourceProduct.productId);
+  const discountPercent = calculateDiscountPercent(sourceProduct);
+  const completeness = calculateCompleteness(sourceProduct);
+  const strongMatches = recommendations.filter((recommendation) => recommendation.score >= 0.55);
 
   return (
     <section className="space-y-6 rounded-4xl border border-(--border) bg-(--card-strong) p-8 shadow-[0_24px_70px_rgba(120,54,54,0.08)] backdrop-blur">
@@ -84,11 +132,48 @@ export default async function ProductAnalysisPage({
             AI Recommendation Service
           </h2>
           <p className="max-w-3xl text-sm leading-6 text-(--muted)">
-            This demo uses the seeded Target synthetic product sample to rank adjacent products by
-            category similarity, price proximity, shopper ratings, and built-in recommendation
-            hints from the dataset.
+            This MVP reads seeded Target rows from Postgres, ranks adjacent products with
+            heuristic scoring, and persists recommendation runs for repeatable PA4 demo evidence.
           </p>
         </div>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-4">
+        {[
+          {
+            label: "Seeded products",
+            value: formatNumber(pickerProducts.length),
+            detail: "Loaded from target_product",
+          },
+          {
+            label: "Data completeness",
+            value: `${completeness}%`,
+            detail: "Selected SKU fields",
+          },
+          {
+            label: "Discount signal",
+            value: discountPercent ? `${discountPercent}%` : "n/a",
+            detail: "Initial vs current price",
+          },
+          {
+            label: "Strong matches",
+            value: formatNumber(strongMatches.length),
+            detail: "Score at or above 55%",
+          },
+        ].map((metric) => (
+          <div
+            key={metric.label}
+            className="rounded-[1.25rem] border border-(--border) bg-white p-4"
+          >
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-(--muted)">
+              {metric.label}
+            </p>
+            <p className="mt-3 text-2xl font-semibold text-(--target-ink)">
+              {metric.value}
+            </p>
+            <p className="mt-1 text-xs text-(--muted)">{metric.detail}</p>
+          </div>
+        ))}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1.05fr_1.35fr]">
@@ -130,26 +215,29 @@ export default async function ProductAnalysisPage({
             ) : null}
 
             <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-2xl border border-(--border) bg-(--card) p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-(--muted)">
-                  Rating
-                </p>
-                <p className="mt-2 text-lg font-semibold text-(--target-ink)">
-                  {sourceProduct.rating ?? "n/a"} / 5
-                </p>
-                <p className="text-sm text-(--muted)">
-                  {sourceProduct.reviewsCount ?? 0} shopper reviews
-                </p>
-              </div>
-              <div className="rounded-2xl border border-(--border) bg-(--card) p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-(--muted)">
-                  Seller
-                </p>
-                <p className="mt-2 text-lg font-semibold text-(--target-ink)">
-                  {sourceProduct.sellerName ?? "Target marketplace"}
-                </p>
-                <p className="text-sm text-(--muted)">{sourceProduct.productId}</p>
-              </div>
+              <MetricBlock
+                label="Rating"
+                value={`${sourceProduct.rating ?? "n/a"} / 5`}
+                detail={`${formatNumber(sourceProduct.reviewsCount)} shopper reviews`}
+              />
+              <MetricBlock
+                label="Seller"
+                value={sourceProduct.sellerName ?? "Target marketplace"}
+                detail={sourceProduct.productId}
+              />
+              <MetricBlock
+                label="Current price"
+                value={formatCurrency(sourceProduct.finalPrice, sourceProduct.currency)}
+                detail={`Initial: ${formatCurrency(
+                  sourceProduct.initialPrice,
+                  sourceProduct.currency,
+                )}`}
+              />
+              <MetricBlock
+                label="Dataset hints"
+                value={formatNumber(sourceProduct.recommendations.length)}
+                detail={`${formatNumber(sourceProduct.findAlternative.length)} alternatives`}
+              />
             </div>
 
             {sourceProduct.breadcrumbs.length > 0 ? (
@@ -171,8 +259,16 @@ export default async function ProductAnalysisPage({
             ) : null}
 
             <div className="text-sm leading-6 text-(--muted)">
-              {sourceProduct.productDescription ?? "No product description was included in the sample row."}
+              {sourceProduct.productDescription ??
+                "No product description was included in the sample row."}
             </div>
+
+            {sourceProduct.summaryOfReviews ? (
+              <div className="rounded-2xl border border-(--border) bg-red-50/40 p-4 text-sm leading-6 text-(--muted)">
+                <p className="mb-1 font-semibold text-(--target-ink)">Review summary</p>
+                {sourceProduct.summaryOfReviews}
+              </div>
+            ) : null}
 
             <Link
               className="inline-flex rounded-full bg-(--target-red) px-4 py-2 text-sm font-semibold text-white transition hover:bg-(--target-red-dark)"
@@ -213,7 +309,7 @@ export default async function ProductAnalysisPage({
                         {recommendation.product.title}
                       </h4>
                       <p className="text-sm text-(--muted)">
-                        {recommendation.product.primaryCategory ?? "Uncategorized"} ·{" "}
+                        {recommendation.product.primaryCategory ?? "Uncategorized"} -{" "}
                         {formatCurrency(
                           recommendation.product.finalPrice,
                           recommendation.product.currency,
@@ -228,7 +324,12 @@ export default async function ProductAnalysisPage({
                       <div className="mt-2 h-2 overflow-hidden rounded-full bg-red-100">
                         <div
                           className="h-full rounded-full bg-(--target-red)"
-                          style={{ width: `${Math.max(8, Math.round(recommendation.score * 100))}%` }}
+                          style={{
+                            width: `${Math.max(
+                              8,
+                              Math.round(recommendation.score * 100),
+                            )}%`,
+                          }}
                         />
                       </div>
                     </div>
@@ -257,14 +358,34 @@ export default async function ProductAnalysisPage({
           </div>
 
           <div className="rounded-[1.6rem] border border-dashed border-red-200 bg-red-50/50 p-6">
-            <p className="text-sm font-semibold text-(--target-ink)">Why these?</p>
+            <p className="text-sm font-semibold text-(--target-ink)">Service evidence</p>
             <p className="mt-2 text-sm leading-6 text-(--muted)">
               Generated with <span className="font-semibold text-(--target-ink)">{provider}</span>{" "}
-              using seeded Target sample data. Last computed {formatTimestamp(generatedAt)}.
+              using seeded Target product data. Current request computed{" "}
+              {formatTimestamp(generatedAt)}.
+              {latestRun ? ` Latest stored run: ${formatTimestamp(latestRun.createdAt)}.` : ""}
             </p>
           </div>
         </div>
       </div>
     </section>
+  );
+}
+
+type MetricBlockProps = {
+  label: string;
+  value: string;
+  detail: string;
+};
+
+function MetricBlock({ label, value, detail }: MetricBlockProps) {
+  return (
+    <div className="rounded-2xl border border-(--border) bg-(--card) p-4">
+      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-(--muted)">
+        {label}
+      </p>
+      <p className="mt-2 text-lg font-semibold text-(--target-ink)">{value}</p>
+      <p className="text-sm text-(--muted)">{detail}</p>
+    </div>
   );
 }

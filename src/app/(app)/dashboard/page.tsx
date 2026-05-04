@@ -1,13 +1,16 @@
 import type { CSSProperties } from "react";
 import {
   Bell,
+  Bot,
   ChartColumnIncreasing,
   ChevronRight,
   CircleDollarSign,
+  Database,
   LayoutDashboard,
   MessageSquareText,
   Search,
   Settings,
+  ShieldCheck,
   ShoppingBag,
   Sparkles,
   UserRound,
@@ -68,6 +71,41 @@ const quickCards = [
     value: "4 items",
     detail: "Pricing gaps and alerts need review before tomorrow morning.",
     tone: "neutral",
+  },
+] as const;
+
+const serviceCards = [
+  {
+    title: "Web Scraper",
+    status: "Dataset ingestion ready",
+    detail:
+      "Downloads, parses, normalizes, and upserts the Target product dataset through npm run db:seed.",
+    evidence: "scripts/seed-target-products.ts",
+    icon: Search,
+  },
+  {
+    title: "Database",
+    status: "Drizzle + Neon wired",
+    detail:
+      "Stores employee auth records, Target product rows, direct messages, and recommendation run history.",
+    evidence: "target_product + recommendation_run",
+    icon: Database,
+  },
+  {
+    title: "Authentication",
+    status: "Employee sessions protected",
+    detail:
+      "Better Auth validates employee IDs and protects every internal page through the shared app layout.",
+    evidence: "/login + /internal-signup",
+    icon: ShieldCheck,
+  },
+  {
+    title: "AI Recommendation",
+    status: "Heuristic provider active",
+    detail:
+      "Ranks adjacent products using category overlap, price proximity, shopper ratings, and dataset hints.",
+    evidence: "/product-analysis",
+    icon: Bot,
   },
 ] as const;
 
@@ -175,6 +213,36 @@ export default async function DashboardPage() {
                 />
               ))}
             </div>
+
+            <section className="rounded-[1.5rem] border border-[var(--border)] bg-[rgba(255,255,255,0.98)] p-5 shadow-[0_12px_30px_rgba(120,54,54,0.06)]">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--target-red)]">
+                    PA4 MVP services
+                  </p>
+                  <h3 className="mt-2 font-[family-name:var(--font-heading)] text-2xl font-semibold tracking-tight text-[var(--target-ink)]">
+                    Backend slices ready for demo
+                  </h3>
+                </div>
+                <p className="max-w-xl text-sm leading-6 text-[var(--muted)]">
+                  These cards map the implemented codebase to the assigned Web Scraper, Database,
+                  Authentication, and AI Recommendation services.
+                </p>
+              </div>
+
+              <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                {serviceCards.map((card) => (
+                  <ServiceCard
+                    key={card.title}
+                    title={card.title}
+                    status={card.status}
+                    detail={card.detail}
+                    evidence={card.evidence}
+                    icon={card.icon}
+                  />
+                ))}
+              </div>
+            </section>
 
             <div className="grid gap-5 xl:grid-cols-2">
               <article className="rounded-[1.5rem] border border-[var(--border)] bg-[rgba(255,255,255,0.98)] p-5 shadow-[0_12px_30px_rgba(120,54,54,0.06)]">
@@ -341,6 +409,41 @@ export default async function DashboardPage() {
         </div>
       </div>
     </section>
+  );
+}
+
+type ServiceCardProps = {
+  title: string;
+  status: string;
+  detail: string;
+  evidence: string;
+  icon: LucideIcon;
+};
+
+function ServiceCard({
+  title,
+  status,
+  detail,
+  evidence,
+  icon: Icon,
+}: ServiceCardProps) {
+  return (
+    <article className="rounded-[1.25rem] border border-[var(--border)] bg-[#fffdfb] p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="rounded-full bg-red-50 p-3 text-[var(--target-red)]">
+          <Icon className="h-5 w-5" />
+        </div>
+        <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+          MVP
+        </span>
+      </div>
+      <h4 className="mt-4 text-lg font-semibold text-[var(--target-ink)]">{title}</h4>
+      <p className="mt-1 text-sm font-semibold text-[var(--target-red)]">{status}</p>
+      <p className="mt-3 text-sm leading-6 text-[var(--muted)]">{detail}</p>
+      <p className="mt-4 rounded-[0.9rem] bg-white px-3 py-2 text-xs font-semibold text-[var(--target-ink)]">
+        Evidence: {evidence}
+      </p>
+    </article>
   );
 }
 

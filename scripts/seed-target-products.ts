@@ -46,15 +46,29 @@ function parseArgs(argv: string[]) {
   return args;
 }
 
+function formatSource(filePath?: string) {
+  return filePath ? `local file ${filePath}` : `remote dataset ${REMOTE_DATASET_URL}`;
+}
+
 async function openInputStream(filePath?: string) {
   if (filePath) {
-    return createReadStream(filePath);
+    try {
+      return createReadStream(filePath);
+    } catch (error) {
+      throw new Error(
+        `Unable to open local Target dataset file "${filePath}": ${
+          error instanceof Error ? error.message : "unknown file error"
+        }`,
+      );
+    }
   }
 
   const response = await fetch(REMOTE_DATASET_URL);
 
   if (!response.ok || !response.body) {
-    throw new Error(`Failed to download dataset: ${response.status} ${response.statusText}`);
+    throw new Error(
+      `Unable to download Target dataset from ${REMOTE_DATASET_URL}: ${response.status} ${response.statusText}`,
+    );
   }
 
   return Readable.fromWeb(response.body as never);
@@ -355,6 +369,13 @@ async function importDb() {
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   const { db } = await importDb();
+  const startedAt = Date.now();
+
+  console.log("Prodact Web Scraper Service");
+  console.log(`Source: ${formatSource(args.file)}`);
+  console.log(`Mode: ${args.file ? "file import" : "remote dataset download"}`);
+  console.log(`Batch size: ${BATCH_SIZE}${args.limit ? `, limit: ${args.limit}` : ""}`);
+
   const input = await openInputStream(args.file);
   const parser = parse({
     columns: true,
@@ -400,13 +421,16 @@ async function main() {
     updated += result.updated;
   }
 
+  const elapsedSeconds = ((Date.now() - startedAt) / 1000).toFixed(1);
+
   console.log(
-    `Seed complete. processed=${processed} inserted=${inserted} updated=${updated} skipped=${skipped}`,
+    `Seed complete. processed=${processed} inserted=${inserted} updated=${updated} skipped=${skipped} elapsed=${elapsedSeconds}s`,
   );
+  console.log("Target products are now available to the Database and AI Recommendation services.");
 }
 
 main().catch((error) => {
-  console.error("Target product seed failed.");
-  console.error(error);
+  console.error("Prodact Web Scraper Service failed.");
+  console.error(error instanceof Error ? error.message : error);
   process.exit(1);
 });

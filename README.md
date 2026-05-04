@@ -7,9 +7,10 @@ Prodact is the Group 10 PA4 starter application for a Target-style internal prod
 - Supports employee ID login with Better Auth
 - Provides a hidden signup route for school-project demo accounts
 - Uses Neon Postgres with Drizzle ORM and committed migrations
-- Seeds Target sample product data into Neon with a repeatable script
+- Seeds Target sample product data into Neon with a repeatable Web Scraper Service script
 - Protects internal pages behind session checks
 - Includes a branded internal app shell with sidebar and logout
+- Shows PA4 MVP service cards on the dashboard
 - Exposes a seeded Product Analysis page with heuristic AI recommendations
 - Keeps the remaining internal pages as placeholders for future feature work
 - Documents how teammates should extend the project safely
@@ -24,6 +25,17 @@ Prodact is the Group 10 PA4 starter application for a Target-style internal prod
 - No final business dashboards yet
 
 This is deliberate. The repo is meant to remove setup friction first.
+
+## PA4 MVP Services
+
+- Web Scraper Service:
+  `scripts/seed-target-products.ts` downloads the Target product CSV, parses and normalizes rows, and upserts products into Postgres with repeatable console output.
+- Database Service:
+  Drizzle and Neon store auth data, direct messages, Target product records, and recommendation run history.
+- Authentication Service:
+  Better Auth supports employee ID login, hidden demo signup, session cookies, and protected internal routes.
+- AI Recommendation Service:
+  `src/lib/recommendations.ts` ranks related products with explainable heuristic scoring and exposes results through `/product-analysis` plus `/api/recommendations/[productId]`.
 
 ## Stack
 
@@ -69,6 +81,7 @@ The app is organized around three layers:
 ### Protected routes
 
 - `/dashboard`
+  - Includes PA4 MVP service cards for Web Scraper, Database, Authentication, and AI Recommendation
 - `/inventory`
 - `/pricing`
 - `/product-analysis`
@@ -387,7 +400,7 @@ Recommended workflow:
 - `npm run db:migrate`
   - apply migrations to the configured database
 - `npm run db:seed`
-  - download and seed the Target sample dataset into Neon
+  - run the Web Scraper Service to download, normalize, and seed the Target sample dataset into Neon
 - `npm run db:studio`
   - open Drizzle Studio
 - `npm run check`
