@@ -26,9 +26,15 @@ function formatCurrency(amount: string | null, currency: string | null) {
     return amount;
   }
 
+  const normalizedCurrency = currency?.trim().toUpperCase();
+  const currencyCode =
+    !normalizedCurrency || normalizedCurrency === "$" || normalizedCurrency.length !== 3
+      ? "USD"
+      : normalizedCurrency;
+
   return new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: currency ?? "USD",
+    currency: currencyCode,
   }).format(parsedAmount);
 }
 
@@ -85,38 +91,37 @@ export default async function ProductAnalysisPage({
   searchParams,
 }: ProductAnalysisPageProps) {
   const params = await searchParams;
-  const pickerProducts = await listTargetProductsForPicker(1000);
-  const fallbackProduct = await getFirstTargetProduct();
-  const selectedProductId = params.productId ?? fallbackProduct?.productId;
+  const [pickerProducts, fallbackProduct] = await Promise.all([
+    listTargetProductsForPicker(1000),
+    getFirstTargetProduct(),
+  ]).catch(() => [[], null] as const);
+  const requestedProductId = params.productId;
+  const selectedProductId = requestedProductId ?? fallbackProduct?.productId;
 
   if (!fallbackProduct || !selectedProductId) {
-    return (
-      <section className="space-y-6 rounded-4xl border border-(--border) bg-(--card-strong) p-8 shadow-[0_24px_70px_rgba(120,54,54,0.08)] backdrop-blur">
-        <div className="space-y-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-(--target-red)">
-            Product Analysis
-          </p>
-          <h2 className="font-(family-name:--font-heading) text-3xl font-semibold tracking-tight text-(--target-ink)">
-            Seed the Target sample data first
-          </h2>
-          <p className="max-w-3xl text-sm leading-6 text-(--muted)">
-            This page becomes active after the Drizzle migrations are applied and the Web Scraper
-            Service imports the Target product dataset.
-          </p>
-        </div>
-        <div className="rounded-[1.6rem] border border-dashed border-red-200 bg-red-50/60 p-6 text-sm leading-6 text-(--muted)">
-          Run <code>npm run db:migrate</code> and then <code>npm run db:seed</code>, then refresh
-          this route.
-        </div>
-      </section>
-    );
+    return <ProductSetupState />;
   }
 
-  const recommendationResult = await recommendationService.recommend(selectedProductId, {
-    limit: 5,
-  });
+  const recommendationResult = await recommendationService
+    .recommend(selectedProductId, {
+      limit: 5,
+    })
+    .catch(async () => {
+      if (requestedProductId && requestedProductId !== fallbackProduct.productId) {
+        return recommendationService.recommend(fallbackProduct.productId, {
+          limit: 5,
+        });
+      }
+
+      return null;
+    });
+
+  if (!recommendationResult) {
+    return <ProductSetupState />;
+  }
+
   const { sourceProduct, recommendations, provider, generatedAt } = recommendationResult;
-  const latestRun = await getLatestRecommendationRun(sourceProduct.productId);
+  const latestRun = await getLatestRecommendationRun(sourceProduct.productId).catch(() => null);
   const discountPercent = calculateDiscountPercent(sourceProduct);
   const completeness = calculateCompleteness(sourceProduct);
   const strongMatches = recommendations.filter((recommendation) => recommendation.score >= 0.55);
@@ -367,6 +372,29 @@ export default async function ProductAnalysisPage({
             </p>
           </div>
         </div>
+      </div>
+    </section>
+  );
+}
+
+function ProductSetupState() {
+  return (
+    <section className="space-y-6 rounded-4xl border border-(--border) bg-(--card-strong) p-8 shadow-[0_24px_70px_rgba(120,54,54,0.08)] backdrop-blur">
+      <div className="space-y-3">
+        <p className="text-xs font-semibold uppercase tracking-[0.28em] text-(--target-red)">
+          Product Analysis
+        </p>
+        <h2 className="font-(family-name:--font-heading) text-3xl font-semibold tracking-tight text-(--target-ink)">
+          Seed the Target sample data first
+        </h2>
+        <p className="max-w-3xl text-sm leading-6 text-(--muted)">
+          This page becomes active after the Drizzle migrations are applied and the Web Scraper
+          Service imports the Target product dataset.
+        </p>
+      </div>
+      <div className="rounded-[1.6rem] border border-dashed border-red-200 bg-red-50/60 p-6 text-sm leading-6 text-(--muted)">
+        Run <code>npm run db:migrate</code> and then <code>npm run db:seed</code>, then refresh
+        this route.
       </div>
     </section>
   );
