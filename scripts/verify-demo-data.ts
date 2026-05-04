@@ -8,11 +8,13 @@ function loadEnvironment() {
 }
 
 function normalizeDatabaseUrl(url: string) {
-  if (url.includes("sslmode=require")) {
-    return url.replace("sslmode=require", "sslmode=verify-full");
-  }
+  let normalized = url.trim().replace(/^['"]|['"]$/g, "");
+  normalized = normalized.replace("sslmode=require", "sslmode=verify-full");
+  normalized = normalized.replace(/([?&])channel_binding=require(&?)/, (_match, prefix, suffix) =>
+    suffix ? prefix : "",
+  );
 
-  return url;
+  return normalized;
 }
 
 async function main() {
@@ -22,9 +24,10 @@ async function main() {
     process.env.DATABASE_URL = normalizeDatabaseUrl(process.env.DATABASE_URL);
   }
 
-  const [{ db }, { recommendationService }] = await Promise.all([
+  const [{ db }, { recommendationService }, { generateProductAiInsight }] = await Promise.all([
     import("../src/db/index"),
     import("../src/lib/recommendations"),
+    import("../src/lib/gemini"),
   ]);
 
   const products = await db.select().from(targetProduct).limit(2);
@@ -40,11 +43,13 @@ async function main() {
     limit: 5,
     persist: false,
   });
+  const insight = await generateProductAiInsight(sourceProduct, result.recommendations);
 
   console.log("Prodact demo data verification passed.");
   console.log(`Seeded product checked: ${sourceProduct.title}`);
   console.log(`Recommendations returned: ${result.recommendations.length}`);
   console.log(`Provider: ${result.provider}`);
+  console.log(`AI insight provider: ${insight.provider} (${insight.model})`);
 }
 
 main().catch((error) => {

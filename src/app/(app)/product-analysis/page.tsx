@@ -1,6 +1,8 @@
 import Link from "next/link";
 
+import { ProductAiInsightPanel } from "@/components/product-ai-insight";
 import { ProductPicker } from "@/components/product-picker";
+import { generateProductAiInsight } from "@/lib/gemini";
 import {
   getFirstTargetProduct,
   getLatestRecommendationRun,
@@ -122,6 +124,7 @@ export default async function ProductAnalysisPage({
 
   const { sourceProduct, recommendations, provider, generatedAt } = recommendationResult;
   const latestRun = await getLatestRecommendationRun(sourceProduct.productId).catch(() => null);
+  const aiInsight = await generateProductAiInsight(sourceProduct, recommendations);
   const discountPercent = calculateDiscountPercent(sourceProduct);
   const completeness = calculateCompleteness(sourceProduct);
   const strongMatches = recommendations.filter((recommendation) => recommendation.score >= 0.55);
@@ -138,7 +141,8 @@ export default async function ProductAnalysisPage({
           </h2>
           <p className="max-w-3xl text-sm leading-6 text-(--muted)">
             This MVP reads seeded Target rows from Postgres, ranks adjacent products with
-            heuristic scoring, and persists recommendation runs for repeatable PA4 demo evidence.
+            Gemini processing plus deterministic fallback scoring, and persists recommendation runs
+            for repeatable PA4 demo evidence.
           </p>
         </div>
       </div>
@@ -366,11 +370,14 @@ export default async function ProductAnalysisPage({
             <p className="text-sm font-semibold text-(--target-ink)">Service evidence</p>
             <p className="mt-2 text-sm leading-6 text-(--muted)">
               Generated with <span className="font-semibold text-(--target-ink)">{provider}</span>{" "}
-              using seeded Target product data. Current request computed{" "}
-              {formatTimestamp(generatedAt)}.
+              using seeded Target product data. Gemini insight provider:{" "}
+              <span className="font-semibold text-(--target-ink)">{aiInsight.model}</span>.
+              Current recommendation request computed {formatTimestamp(generatedAt)}.
               {latestRun ? ` Latest stored run: ${formatTimestamp(latestRun.createdAt)}.` : ""}
             </p>
           </div>
+
+          <ProductAiInsightPanel insight={aiInsight} />
         </div>
       </div>
     </section>

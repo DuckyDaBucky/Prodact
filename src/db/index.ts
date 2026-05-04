@@ -4,11 +4,13 @@ import { drizzle } from "drizzle-orm/neon-http";
 import * as schema from "./schema";
 
 function normalizeDatabaseUrl(url: string) {
-  if (url.includes("sslmode=require")) {
-    return url.replace("sslmode=require", "sslmode=verify-full");
-  }
+  let normalized = url.trim().replace(/^['"]|['"]$/g, "");
+  normalized = normalized.replace("sslmode=require", "sslmode=verify-full");
+  normalized = normalized.replace(/([?&])channel_binding=require(&?)/, (_match, prefix, suffix) =>
+    suffix ? prefix : "",
+  );
 
-  return url;
+  return normalized;
 }
 
 const databaseUrl = normalizeDatabaseUrl(

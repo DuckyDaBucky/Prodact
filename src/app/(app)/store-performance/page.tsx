@@ -7,32 +7,53 @@ import {
   Users,
 } from "lucide-react";
 
-const metricCards = [
-  {
-    title: "Total Sales",
-    subtitle: "Orders",
-    value: "$184,320",
-    detail: "Sales increase/decrease",
-    icon: ShoppingBag,
-    featured: true,
-  },
-  {
-    title: "Number of Customers",
-    subtitle: "This month",
-    value: "12,480",
-    detail: "Stats compared to last week/year",
-    icon: Users,
-  },
-  {
-    title: "Refunds/Loss",
-    subtitle: "Storewide",
-    value: "#418",
-    detail: "Includes canceled orders and returns",
-    icon: Clock3,
-  },
-];
+import { deriveProductSignals, formatCurrency, formatNumber, listDemoProducts } from "@/lib/demo-data";
 
-const topProducts = ["Item #1", "Item #2", "Item #3"];
+function buildMetricCards(products: Awaited<ReturnType<typeof listDemoProducts>>) {
+  const revenue = products.reduce((total, product) => {
+    const signals = deriveProductSignals(product);
+    const price = Number.parseFloat(product.finalPrice ?? "0");
+    return total + signals.weeklySales * (Number.isFinite(price) ? price : 0);
+  }, 0);
+  const customers = products.reduce(
+    (total, product) => total + Math.round(deriveProductSignals(product).weeklySales * 0.72),
+    0,
+  );
+  const returns = products.reduce(
+    (total, product) =>
+      total +
+      Math.round(
+        deriveProductSignals(product).weeklySales *
+          (deriveProductSignals(product).returnRate / 100),
+      ),
+    0,
+  );
+
+  return [
+    {
+      title: "Total Sales",
+      subtitle: "Derived weekly revenue",
+      value: formatCurrency(revenue),
+      detail: "Calculated from seeded price and sales velocity signals",
+      icon: ShoppingBag,
+      featured: true,
+    },
+    {
+      title: "Number of Customers",
+      subtitle: "Demo traffic",
+      value: formatNumber(customers),
+      detail: "Estimated shoppers served by tracked seeded products",
+      icon: Users,
+    },
+    {
+      title: "Refunds/Loss",
+      subtitle: "Storewide",
+      value: `#${formatNumber(returns)}`,
+      detail: "Derived from sales velocity and return-rate signals",
+      icon: Clock3,
+    },
+  ];
+}
 
 const chartRows = [
   { sales: 54, traffic: 28, returns: 16 },
@@ -113,7 +134,14 @@ function TrendChart() {
   );
 }
 
-export default function StorePerformancePage() {
+export default async function StorePerformancePage() {
+  const products = await listDemoProducts(24).catch(() => []);
+  const metricCards = buildMetricCards(products);
+  const topProducts = products
+    .map((product) => ({ product, signals: deriveProductSignals(product) }))
+    .sort((left, right) => right.signals.weeklySales - left.signals.weeklySales)
+    .slice(0, 3);
+
   return (
     <section className="rounded-[2rem] bg-[#f5f3ee] p-3 text-[#232429] shadow-[0_24px_70px_rgba(35,36,41,0.08)] sm:p-6">
       <div className="grid overflow-hidden rounded-[2rem] bg-[#f0ede7] shadow-[0_30px_80px_rgba(35,36,41,0.08)] xl:grid-cols-[220px_minmax(0,1fr)]">
@@ -223,11 +251,11 @@ export default function StorePerformancePage() {
             <aside className="rounded-[2rem] bg-white p-5 shadow-[0_18px_40px_rgba(35,36,41,0.05)] sm:p-6">
               <h2 className="text-xl font-semibold">Top Products</h2>
               <ul className="mt-8 space-y-4 text-sm font-semibold">
-                {topProducts.map((product, index) => (
-                  <li key={product} className="flex items-center gap-3">
+                {topProducts.map(({ product, signals }, index) => (
+                  <li key={product.productId} className="flex items-start gap-3">
                     <span
                       className={[
-                        "h-3 w-3 rounded-sm",
+                        "mt-1 h-3 w-3 shrink-0 rounded-sm",
                         index === 0
                           ? "bg-[#2b2c31]"
                           : index === 1
@@ -235,7 +263,12 @@ export default function StorePerformancePage() {
                             : "bg-[#e3e4e8]",
                       ].join(" ")}
                     />
-                    <span>{product}</span>
+                    <span>
+                      <span className="line-clamp-2">{product.title}</span>
+                      <span className="mt-1 block text-xs font-normal text-[#7a7b80]">
+                        {signals.weeklySales} weekly units
+                      </span>
+                    </span>
                   </li>
                 ))}
               </ul>

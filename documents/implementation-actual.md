@@ -18,7 +18,7 @@
 - `Tailwind CSS v4` for consistent styling in the internal tool shell.
 - `Lucide React` for lightweight icons.
 - `csv-parse` for importing the Target product sample into the database.
-- A heuristic recommendation service for explainable demo recommendations without requiring an external LLM key.
+- A Gemini-backed product insight service with deterministic fallback recommendations for demo reliability.
 
 ## Development Environments
 
@@ -27,7 +27,7 @@
 - Testing:
   Manual smoke testing through `/login`, `/internal-signup`, and the protected app routes, plus `npm run lint` and `npm run build`.
 - Production:
-  Not fully established yet. The repo is still positioned as a demo-ready school project rather than a deployed production system.
+  Vercel-hosted MVP demo backed by Neon Postgres and server-side Gemini API calls when `GEMINI_API_KEY` is configured.
 
 ## Configuration Management
 
@@ -41,6 +41,7 @@
 
 - Protected product features continue to live under `src/app/(app)` so they inherit the shared session gate and layout.
 - The Target dataset is loaded through `scripts/seed-target-products.ts`, which downloads the CSV sample, normalizes it, and upserts into Drizzle-managed tables.
+- The Gemini insight service lives in `src/lib/gemini.ts` and sends selected seeded product fields plus derived signals to Gemini.
 - The recommendation service lives in `src/lib/recommendations.ts` and combines category similarity, pricing proximity, ratings, and dataset-provided recommendation hints.
 - The API layer exposes recommendations through `src/app/api/recommendations/[productId]/route.ts`.
 - The UI surface for this feature is the updated `src/app/(app)/product-analysis/page.tsx`, which reads seeded products and renders explainable recommendations for a selected SKU.
@@ -54,13 +55,15 @@
 - Authentication Service:
   `src/lib/auth.ts`, `src/lib/session.ts`, `/login`, and `/internal-signup` implement employee ID authentication with Better Auth. The protected `(app)` layout requires a valid session before users can access dashboard, Product Analysis, and other internal routes.
 - AI Recommendation Service:
-  `src/lib/recommendations.ts` implements the `heuristic-v1` provider. It ranks candidate products by category overlap, price proximity, shopper rating quality, and dataset recommendation hints, then persists each run.
+  `src/lib/gemini.ts` processes selected products with Gemini when the key is configured. `src/lib/recommendations.ts` implements the `heuristic-v1` provider for ranked related products and fallback evidence.
+- Notification Service:
+  `/alerts` uses `src/lib/demo-data.ts` to derive product, restock, pricing, and data-quality notifications from seeded Target rows without adding schema risk.
 - Demo Evidence:
-  `/dashboard` includes PA4 MVP service cards for the four assigned services, and `/product-analysis` demonstrates the Database and AI Recommendation services using seeded Target product rows.
+  `/dashboard` includes PA4 MVP service cards, `/search` demonstrates professor-facing product lookup with Gemini insight, and `/product-analysis` demonstrates Database, Gemini, recommendation persistence, and explainable fallback behavior.
 
 ## Test Cases for PA4 Evidence
 
 - Web Scraper: run `npm run db:seed` and verify the console reports processed, inserted, updated, skipped, and elapsed counts.
 - Database: run `npm run db:migrate`, then confirm Product Analysis can read seeded records from `target_product`.
 - Authentication: create a demo account through `/internal-signup`, log out, log back in through `/login`, and confirm protected routes redirect unauthenticated users.
-- AI Recommendation: open `/product-analysis`, select a product, confirm recommendation cards show scores and reasons, and call `GET /api/recommendations/[productId]?limit=5` for JSON output.
+- AI Recommendation: open `/search` or `/product-analysis`, select a product, confirm Gemini or fallback insight appears, confirm recommendation cards show scores and reasons, and call `GET /api/recommendations/[productId]?limit=5` for JSON output.

@@ -9,6 +9,25 @@ const tabs = [
   { id: "recommended", label: "Recommended Layout" },
 ] as const;
 
+const recommendedZones = [
+  {
+    label: "Front endcaps",
+    value: "Move high-demand household essentials closer to checkout.",
+  },
+  {
+    label: "Center aisles",
+    value: "Pair strong recommendation matches beside source products.",
+  },
+  {
+    label: "Backroom flow",
+    value: "Reserve faster restock paths for high-risk inventory signals.",
+  },
+  {
+    label: "Promotion lane",
+    value: "Group markdown products by discount signal and review strength.",
+  },
+] as const;
+
 type TabId = (typeof tabs)[number]["id"];
 
 function TabButton({
@@ -203,15 +222,66 @@ export default function StoreLayoutPage() {
                 <Sparkles className="h-6 w-6" />
               </span>
             </div>
-            <div className="mt-6 flex min-h-[28rem] items-start justify-center rounded-[1.6rem] border border-dashed border-[var(--border)] bg-white/65 px-6 pt-10 text-center">
-              <div className="max-w-xl">
-                <p className="font-[family-name:var(--font-heading)] text-3xl font-semibold tracking-tight text-[var(--target-ink)] sm:text-4xl">
-                  Needs more Information.
-                </p>
-                <p className="mt-3 text-lg text-[var(--target-ink)]">
-                  Please finish store profile setup.
-                </p>
+            <div className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
+              <div className="rounded-[1.6rem] border border-[var(--border)] bg-white/80 p-5">
+                <div className="grid min-h-[28rem] grid-cols-4 gap-4">
+                  <div className="rounded-[1.1rem] bg-red-100 p-4 text-sm font-semibold text-[var(--target-red)]">
+                    Promo endcaps
+                  </div>
+                  <div className="col-span-2 rounded-[1.1rem] bg-white p-4 text-center text-sm font-semibold text-[var(--target-ink)] shadow-[inset_0_0_0_1px_rgba(35,24,21,0.08)]">
+                    Recommended cross-merchandising aisle
+                  </div>
+                  <div className="rounded-[1.1rem] bg-emerald-100 p-4 text-sm font-semibold text-emerald-700">
+                    Fast restock lane
+                  </div>
+                  <div className="col-span-4 grid grid-cols-6 gap-3">
+                    {Array.from({ length: 12 }, (_, index) => (
+                      <div
+                        key={index}
+                        className={[
+                          "h-24 rounded-[0.9rem]",
+                          index % 3 === 0
+                            ? "bg-red-50"
+                            : index % 3 === 1
+                              ? "bg-stone-100"
+                              : "bg-amber-50",
+                        ].join(" ")}
+                      />
+                    ))}
+                  </div>
+                  <div className="col-span-2 rounded-[1.1rem] bg-[var(--target-ink)] p-4 text-center text-sm font-semibold text-white">
+                    Entrance
+                  </div>
+                  <div className="col-span-2 rounded-[1.1rem] bg-red-50 p-4 text-center text-sm font-semibold text-[var(--target-red)]">
+                    Checkout conversion zone
+                  </div>
+                </div>
               </div>
+
+              <aside className="rounded-[1.6rem] border border-[var(--border)] bg-white/85 p-5">
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--target-red)]">
+                  Layout recommendations
+                </p>
+                <div className="mt-5 space-y-3">
+                  {recommendedZones.map((zone) => (
+                    <div
+                      key={zone.label}
+                      className="rounded-[1.1rem] border border-[var(--border)] bg-white px-4 py-3"
+                    >
+                      <p className="text-sm font-semibold text-[var(--target-ink)]">
+                        {zone.label}
+                      </p>
+                      <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
+                        {zone.value}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-5 rounded-[1.1rem] border border-red-100 bg-red-50/60 p-4 text-sm leading-6 text-[var(--muted)]">
+                  The MVP uses product recommendation, discount, and restock signals as the
+                  decision-support basis for layout planning.
+                </div>
+              </aside>
             </div>
           </div>
         )}

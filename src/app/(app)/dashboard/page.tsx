@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/components/cn";
+import { deriveNotifications, listDemoProducts } from "@/lib/demo-data";
 import { requireSession } from "@/lib/session";
 
 const shellGridStyle: CSSProperties = {
@@ -48,10 +49,11 @@ const quickCards = [
   },
 ] as const;
 
-const serviceCards = [
+function buildServiceCards(productCount: number, notificationCount: number, geminiReady: boolean) {
+  return [
   {
     title: "Web Scraper",
-    status: "Dataset ingestion ready",
+    status: productCount > 0 ? `${productCount} Target rows loaded` : "Seed data pending",
     detail:
       "Downloads, parses, normalizes, and upserts the Target product dataset through npm run db:seed.",
     evidence: "scripts/seed-target-products.ts",
@@ -61,7 +63,7 @@ const serviceCards = [
     title: "Database",
     status: "Drizzle + Neon wired",
     detail:
-      "Stores employee auth records, Target product rows, direct messages, and recommendation run history.",
+      `Stores employee auth records, Target product rows, direct messages, recommendation runs, and ${notificationCount} derived alerts.`,
     evidence: "target_product + recommendation_run",
     icon: Database,
   },
@@ -75,16 +77,21 @@ const serviceCards = [
   },
   {
     title: "AI Recommendation",
-    status: "Heuristic provider active",
+    status: geminiReady ? "Gemini provider configured" : "Fallback provider active",
     detail:
-      "Ranks adjacent products using category overlap, price proximity, shopper ratings, and dataset hints.",
-    evidence: "/product-analysis",
+      "Processes selected products with Gemini when configured, then falls back to explainable heuristic scoring if needed.",
+    evidence: "/search + /product-analysis",
     icon: Bot,
   },
-] as const;
+  ] as const;
+}
 
 export default async function DashboardPage() {
   const session = await requireSession();
+  const products = await listDemoProducts(120).catch(() => []);
+  const notifications = deriveNotifications(products);
+  const geminiReady = Boolean(process.env.GEMINI_API_KEY?.trim());
+  const serviceCards = buildServiceCards(products.length, notifications.length, geminiReady);
   const salesPath = buildLinePath(salesData, 56, 472, 210, 44);
 
   return (

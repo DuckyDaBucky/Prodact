@@ -4,6 +4,7 @@ import {
   ChartColumnIncreasing,
   Crosshair,
   LayoutDashboard,
+  Search,
   Send,
   Settings,
   Store,
@@ -15,6 +16,12 @@ export const navItems = [
     label: "Dashboard",
     description: "Snapshot of the internal tool shell",
     icon: LayoutDashboard,
+  },
+  {
+    href: "/search",
+    label: "Search",
+    description: "Find seeded Target products and Gemini insights",
+    icon: Search,
   },
   {
     href: "/store-performance",

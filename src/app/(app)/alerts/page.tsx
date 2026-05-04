@@ -1,82 +1,200 @@
 import Link from "next/link";
-import { ChevronDown, ChevronLeft, Bell, Sparkles } from "lucide-react";
+import {
+  Bell,
+  CircleAlert,
+  Database,
+  PackageSearch,
+  Tags,
+  type LucideIcon,
+} from "lucide-react";
 
-const notificationGroups = [
-  {
-    title: "Product Notifications",
-    icon: Bell,
-    accent: "from-red-100 via-white to-red-50",
-    emptyState: "No notifications",
-    helperText: "Restock requests, pricing updates, and product health alerts will appear here.",
-  },
-  {
-    title: "Social Notifications",
-    icon: Sparkles,
-    accent: "from-amber-100 via-white to-orange-50",
-    emptyState: "No notifications",
-    helperText: "Team mentions, comments, and shared activity updates will appear here.",
-  },
-] as const;
+import { deriveNotifications, listDemoProducts } from "@/lib/demo-data";
 
-export default function AlertsPage() {
+const typeLabels = {
+  product: "Product",
+  restock: "Restock",
+  pricing: "Pricing",
+  "data-quality": "Data quality",
+} as const;
+
+export default async function AlertsPage() {
+  const products = await listDemoProducts(160).catch(() => []);
+  const notifications = deriveNotifications(products);
+  const unreadCount = notifications.filter((notification) => notification.status === "unread").length;
+  const highCount = notifications.filter((notification) => notification.severity === "high").length;
+  const restockCount = notifications.filter((notification) => notification.type === "restock").length;
+  const pricingCount = notifications.filter((notification) => notification.type === "pricing").length;
+  const grouped = {
+    high: notifications.filter((notification) => notification.severity === "high"),
+    medium: notifications.filter((notification) => notification.severity === "medium"),
+    low: notifications.filter((notification) => notification.severity === "low"),
+  };
+
   return (
     <section className="space-y-6">
-      <div className="flex flex-col gap-4 rounded-[2rem] border border-[var(--border)] bg-[var(--card-strong)] p-4 shadow-[0_24px_70px_rgba(120,54,54,0.08)] sm:flex-row sm:items-center sm:p-5">
-        <Link
-          href="/dashboard"
-          className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-[var(--border)] bg-white text-[var(--target-ink)] transition hover:-translate-y-0.5 hover:border-red-200 hover:text-[var(--target-red)]"
-          aria-label="Back to dashboard"
-        >
-          <ChevronLeft className="h-6 w-6" />
-        </Link>
-        <div className="flex-1 rounded-[1.6rem] bg-[linear-gradient(135deg,rgba(204,0,0,0.08),rgba(255,255,255,0.98))] px-5 py-5">
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--target-red)]">
-            Notification Center
-          </p>
-          <h2 className="mt-2 font-[family-name:var(--font-heading)] text-3xl font-semibold tracking-tight text-[var(--target-ink)]">
-            Notifications Page
-          </h2>
+      <div className="rounded-[1.9rem] border border-(--border) bg-(--card-strong) p-6 shadow-[0_24px_70px_rgba(120,54,54,0.08)]">
+        <p className="text-xs font-semibold uppercase tracking-[0.28em] text-(--target-red)">
+          Notification Service
+        </p>
+        <div className="mt-3 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <h2 className="font-(family-name:--font-heading) text-3xl font-semibold tracking-tight text-(--target-ink)">
+              Derived alert center
+            </h2>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-(--muted)">
+              Product, restock, pricing, and data-quality alerts are generated from seeded Target
+              rows. This is a product-only MVP service with deterministic read/unread demo state.
+            </p>
+          </div>
+          <span className="inline-flex items-center gap-2 rounded-full bg-red-50 px-4 py-2 text-sm font-semibold text-(--target-red)">
+            <Database className="h-4 w-4" />
+            target_product backed
+          </span>
         </div>
       </div>
 
-      <div className="rounded-[2rem] border border-[var(--border)] bg-[var(--card-strong)] p-5 shadow-[0_24px_70px_rgba(120,54,54,0.08)] sm:p-7">
-        <div className="space-y-4">
-          {notificationGroups.map((group) => {
-            const Icon = group.icon;
+      <div className="grid gap-4 md:grid-cols-4">
+        <MetricCard icon={Bell} label="Total alerts" value={notifications.length} />
+        <MetricCard icon={CircleAlert} label="Unread" value={unreadCount} />
+        <MetricCard icon={PackageSearch} label="Restock" value={restockCount} />
+        <MetricCard icon={Tags} label="Pricing" value={pricingCount} />
+      </div>
 
-            return (
-              <details
-                key={group.title}
-                open
-                className="group overflow-hidden rounded-[1.8rem] border border-[var(--border)] bg-white/80"
-              >
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 bg-[linear-gradient(135deg,rgba(75,29,29,0.92),rgba(108,52,52,0.88))] px-5 py-4 text-white marker:content-none">
-                  <div className="flex items-center gap-3">
-                    <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-white/16 ring-1 ring-white/20">
-                      <Icon className="h-5 w-5" />
-                    </span>
-                    <div>
-                      <p className="text-xl font-semibold">{group.title}</p>
-                      <p className="text-sm text-white/70">{group.helperText}</p>
-                    </div>
-                  </div>
-                  <ChevronDown className="h-5 w-5 shrink-0 transition group-open:rotate-180" />
-                </summary>
-                <div className={`bg-gradient-to-br ${group.accent} px-5 py-8 sm:px-7 sm:py-10`}>
-                  <div className="flex min-h-52 flex-col items-center justify-center rounded-[1.6rem] border border-dashed border-[var(--border)] bg-[rgba(255,255,255,0.78)] px-6 text-center">
-                    <p className="font-[family-name:var(--font-heading)] text-3xl font-semibold tracking-tight text-[var(--target-ink)] sm:text-4xl">
-                      {group.emptyState}
-                    </p>
-                    <p className="mt-3 max-w-xl text-sm leading-6 text-[var(--muted)]">
-                      Once this module is connected to live workflows, this area can surface incoming updates without changing the page structure.
-                    </p>
-                  </div>
+      <div className="grid gap-5 xl:grid-cols-[260px_minmax(0,1fr)]">
+        <aside className="rounded-[1.7rem] border border-(--border) bg-white p-5">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-(--target-red)">
+            Status
+          </p>
+          <div className="mt-4 space-y-3">
+            <StatusRow label="High severity" value={highCount} tone="high" />
+            <StatusRow label="Medium severity" value={grouped.medium.length} tone="medium" />
+            <StatusRow label="Data rows scanned" value={products.length} tone="low" />
+          </div>
+          <div className="mt-5 rounded-[1.25rem] border border-dashed border-red-200 bg-red-50/50 p-4 text-sm leading-6 text-(--muted)">
+            Read state is derived for the MVP. A future production service would persist user-level
+            notification reads in Postgres.
+          </div>
+        </aside>
+
+        <div className="space-y-5">
+          {(["high", "medium", "low"] as const).map((severity) => (
+            <section
+              key={severity}
+              className="rounded-[1.7rem] border border-(--border) bg-white p-5"
+            >
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-(--target-red)">
+                    {severity} severity
+                  </p>
+                  <h3 className="mt-2 text-xl font-semibold capitalize text-(--target-ink)">
+                    {grouped[severity].length} generated notifications
+                  </h3>
                 </div>
-              </details>
-            );
-          })}
+                <span className={severityPillClassName(severity)}>{severity}</span>
+              </div>
+
+              <div className="mt-5 space-y-3">
+                {grouped[severity].map((notification) => (
+                  <article
+                    key={notification.id}
+                    className="rounded-[1.25rem] border border-(--border) bg-(--card) p-4"
+                  >
+                    <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                      <div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-(--target-red)">
+                            {typeLabels[notification.type]}
+                          </span>
+                          <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-(--muted)">
+                            {notification.status}
+                          </span>
+                        </div>
+                        <h4 className="mt-3 text-base font-semibold text-(--target-ink)">
+                          {notification.title}
+                        </h4>
+                        <p className="mt-2 text-sm leading-6 text-(--muted)">
+                          {notification.body}
+                        </p>
+                      </div>
+                      <Link
+                        className="shrink-0 rounded-full bg-(--target-red) px-4 py-2 text-sm font-semibold text-white"
+                        href={`/product-analysis?productId=${encodeURIComponent(
+                          notification.productId,
+                        )}`}
+                      >
+                        Review product
+                      </Link>
+                    </div>
+                  </article>
+                ))}
+
+                {grouped[severity].length === 0 ? (
+                  <div className="rounded-[1.25rem] border border-dashed border-(--border) bg-(--card) p-4 text-sm text-(--muted)">
+                    No {severity} severity notifications were generated from the current seeded
+                    rows.
+                  </div>
+                ) : null}
+              </div>
+            </section>
+          ))}
         </div>
       </div>
     </section>
   );
+}
+
+function MetricCard({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: LucideIcon;
+  label: string;
+  value: number;
+}) {
+  return (
+    <div className="rounded-[1.35rem] border border-(--border) bg-white p-4">
+      <div className="flex items-center gap-3">
+        <div className="rounded-full bg-red-50 p-2 text-(--target-red)">
+          <Icon className="h-4 w-4" />
+        </div>
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-(--muted)">
+          {label}
+        </p>
+      </div>
+      <p className="mt-3 text-2xl font-semibold text-(--target-ink)">{value}</p>
+    </div>
+  );
+}
+
+function StatusRow({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: number;
+  tone: "high" | "medium" | "low";
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-[1rem] border border-(--border) bg-(--card) px-4 py-3 text-sm">
+      <span className="text-(--muted)">{label}</span>
+      <span className={severityPillClassName(tone)}>{value}</span>
+    </div>
+  );
+}
+
+function severityPillClassName(severity: "high" | "medium" | "low") {
+  const base = "inline-flex w-fit rounded-full px-3 py-1 text-xs font-semibold capitalize";
+
+  if (severity === "high") {
+    return `${base} bg-red-50 text-(--target-red)`;
+  }
+
+  if (severity === "medium") {
+    return `${base} bg-amber-50 text-amber-700`;
+  }
+
+  return `${base} bg-emerald-50 text-emerald-700`;
 }

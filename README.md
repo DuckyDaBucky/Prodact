@@ -11,18 +11,17 @@ Prodact is the Group 10 PA4 starter application for a Target-style internal prod
 - Protects internal pages behind session checks
 - Includes a branded internal app shell with sidebar and logout
 - Shows PA4 MVP service cards on the dashboard
-- Exposes a seeded Product Analysis page with heuristic AI recommendations
-- Keeps the remaining internal pages as placeholders for future feature work
+- Exposes Search and Product Analysis pages with Gemini-backed product insights
+- Uses deterministic fallback analysis when Gemini is not configured or unavailable
+- Uses seeded Target rows to drive inventory, notifications, store, competitor, and layout demo surfaces
 - Documents how teammates should extend the project safely
 
 ## What This Repo Does Not Do Yet
 
-- No real LLM provider wired in yet, only a heuristic recommendation engine
 - No real POS, inventory, ERP, or competitor API integrations
 - No deep role-based access control beyond storing a `role`
-- No production deployment automation yet
 - No admin UI for account management
-- No final business dashboards yet
+- No live enterprise inventory, POS, or competitor data feeds yet
 
 This is deliberate. The repo is meant to remove setup friction first.
 
@@ -35,7 +34,9 @@ This is deliberate. The repo is meant to remove setup friction first.
 - Authentication Service:
   Better Auth supports employee ID login, hidden demo signup, session cookies, and protected internal routes.
 - AI Recommendation Service:
-  `src/lib/recommendations.ts` ranks related products with explainable heuristic scoring and exposes results through `/product-analysis` plus `/api/recommendations/[productId]`.
+  `src/lib/gemini.ts` calls Gemini for selected product analysis when `GEMINI_API_KEY` is configured. `src/lib/recommendations.ts` still ranks related products with explainable heuristic scoring and exposes results through `/product-analysis` plus `/api/recommendations/[productId]`.
+- Notification Service:
+  `/alerts` derives product, restock, pricing, and data-quality notifications from seeded Target rows without requiring a new schema.
 
 ## Stack
 
@@ -82,15 +83,19 @@ The app is organized around three layers:
 
 - `/dashboard`
   - Includes PA4 MVP service cards for Web Scraper, Database, Authentication, and AI Recommendation
+- `/search`
+  - Searches seeded Target products and runs Gemini-backed product insight for the selected result
 - `/inventory`
+  - Shows seeded-product restock planning with derived inventory signals
 - `/pricing`
 - `/product-analysis`
-  - Seeded Target product analysis and heuristic AI recommendations
+  - Seeded Target product analysis, ranked recommendations, stored run evidence, and Gemini insight
 - `/alerts`
+  - Product, restock, pricing, and data-quality notifications derived from Target rows
 - `/reports`
 - `/settings`
 
-The Product Analysis route now has seeded demo functionality. The remaining protected pages are intentionally placeholders for future teammate work.
+The protected pages are demo-ready MVP surfaces. Pages that do not use live enterprise integrations state that their values are seeded or derived for the class prototype.
 
 ## Authentication Design
 
@@ -172,11 +177,15 @@ Required variables:
   - server URL, usually `http://localhost:3000`
 - `NEXT_PUBLIC_APP_URL`
   - client-facing URL, usually `http://localhost:3000`
+- `GEMINI_API_KEY`
+  - Google AI Studio API key used by the server-only Gemini insight service
+- `GEMINI_MODEL`
+  - optional model override, defaults to `gemini-2.5-flash`
 
 On Vercel, set the same variables in Project Settings. `BETTER_AUTH_URL` and
 `NEXT_PUBLIC_APP_URL` should be the deployed URL or custom domain. The app can
 fall back to Vercel's generated `VERCEL_URL`, but setting explicit URLs is safer
-for the final demo.
+for the final demo. Never commit real API keys.
 
 Example:
 
@@ -185,6 +194,8 @@ DATABASE_URL="postgresql://YOUR_NEON_USER:YOUR_NEON_PASSWORD@YOUR_NEON_HOST/prod
 BETTER_AUTH_SECRET="replace-with-a-long-random-secret-at-least-32-characters"
 BETTER_AUTH_URL="http://localhost:3000"
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
+GEMINI_API_KEY="replace-with-your-google-ai-studio-key"
+GEMINI_MODEL="gemini-2.5-flash"
 ```
 
 ## Local Setup
@@ -253,6 +264,7 @@ After setup, verify the following flow:
 5. Go to `/login`
 6. Log back in with the same employee ID and password
 7. Visit multiple protected routes
+8. Search a seeded product on `/search` and confirm the AI insight panel says `Processed by Gemini` or `Fallback AI insight`
 
 If that flow works, the basic auth shell is healthy.
 
@@ -319,8 +331,9 @@ If a teammate is joining the project and wants the shortest path to understandin
 3. `src/app/(app)/layout.tsx`
 4. `src/components/app-sidebar.tsx`
 5. `src/db/schema.ts`
-6. `README.md`
+6. `src/lib/gemini.ts`
 7. `src/lib/recommendations.ts`
+8. `README.md`
 
 ## How To Extend the App Safely
 
@@ -429,6 +442,8 @@ Before deploying, configure these Vercel environment variables for Production an
 - `BETTER_AUTH_SECRET`
 - `BETTER_AUTH_URL`
 - `NEXT_PUBLIC_APP_URL`
+- `GEMINI_API_KEY`
+- `GEMINI_MODEL`
 
 Recommended deployment flow:
 
@@ -446,7 +461,8 @@ vercel
 vercel --prod
 ```
 
-After deployment, verify `/login`, `/internal-signup`, `/dashboard`, and `/product-analysis`.
+After deployment, verify `/login`, `/internal-signup`, `/dashboard`, `/search`, and `/product-analysis`.
+Confirm the Search or Product Analysis insight panel says `Processed by Gemini` when the key is configured.
 
 ## Documents
 
@@ -474,8 +490,8 @@ If the team receives an official asset later, replace this file and keep the sam
 - No password reset flow
 - No real employee directory or admin provisioning
 - No fine-grained authorization yet
-- Most feature pages are still placeholders
-- No advanced analytics engine beyond the seeded recommendation demo yet
+- Feature pages use demo-derived signals rather than live enterprise integrations
+- Gemini depends on the configured Google AI Studio key and falls back when unavailable
 
 These are acceptable tradeoffs for the current class-project milestone.
 

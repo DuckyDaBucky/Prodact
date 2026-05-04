@@ -12,6 +12,8 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+import { deriveProductSignals, formatNumber, listDemoProducts } from "@/lib/demo-data";
+
 const comparisonPeriods = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
 
 const priceSeries = {
@@ -117,7 +119,29 @@ const storeCards = [
   },
 ] as const;
 
-export default function CompetitorAnalysisPage() {
+export default async function CompetitorAnalysisPage() {
+  const products = await listDemoProducts(80).catch(() => []);
+  const signals = products.map((product) => deriveProductSignals(product));
+  const averagePriceGap =
+    signals.length > 0
+      ? Math.round(
+          signals.reduce((total, signal) => total + Math.abs(signal.priceGapPercent ?? 0), 0) /
+            signals.length,
+        )
+      : 0;
+  const availabilityEdge = Math.max(
+    1,
+    Math.round(
+      signals.reduce((total, signal) => total + (signal.inventoryRisk === "low" ? 1 : -0.25), 0),
+    ),
+  );
+  const averageRating =
+    products.length > 0
+      ? products.reduce((total, product) => total + Number.parseFloat(product.rating ?? "0"), 0) /
+        products.length
+      : 0;
+  const categoryLabel = products[0]?.primaryCategory ?? "Household essentials";
+
   return (
     <section className="space-y-6">
       <div className="rounded-[1.9rem] border border-[var(--border)] bg-[var(--card-strong)] px-6 py-5 shadow-[0_24px_70px_rgba(120,54,54,0.08)] backdrop-blur">
@@ -128,7 +152,7 @@ export default function CompetitorAnalysisPage() {
               AI competitor analysis
             </span>
             <span className="rounded-full border border-[var(--border)] bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
-              Household essentials
+              {categoryLabel}
             </span>
           </div>
           <div className="text-center">
@@ -143,9 +167,9 @@ export default function CompetitorAnalysisPage() {
             <MetricPill
               icon={CircleDollarSign}
               label="Price gap"
-              value="3.6%"
+              value={`${averagePriceGap}%`}
             />
-            <MetricPill icon={TrendingUp} label="Share gain" value="+2.8 pts" />
+            <MetricPill icon={TrendingUp} label="Rows compared" value={formatNumber(products.length)} />
           </div>
         </div>
       </div>
@@ -366,9 +390,9 @@ export default function CompetitorAnalysisPage() {
             </div>
 
             <div className="mt-4 grid gap-3 sm:grid-cols-3">
-              <SummaryCard icon={Boxes} label="Tracked SKUs" value="248" />
+              <SummaryCard icon={Boxes} label="Tracked SKUs" value={formatNumber(products.length)} />
               <SummaryCard icon={CircleDollarSign} label="Promo match candidates" value="3 items" />
-              <SummaryCard icon={TrendingUp} label="Availability edge" value="+9 pts" />
+              <SummaryCard icon={TrendingUp} label="Availability edge" value={`+${availabilityEdge} pts`} />
             </div>
           </article>
 
@@ -511,7 +535,7 @@ export default function CompetitorAnalysisPage() {
 
             <div className="mt-4 grid gap-3 sm:grid-cols-3">
               <SummaryCard icon={ChartColumnIncreasing} label="Sales delta" value="+12.4%" />
-              <SummaryCard icon={MessageSquareText} label="Sentiment edge" value="+0.5 stars" />
+              <SummaryCard icon={MessageSquareText} label="Sentiment edge" value={`+${Math.max(0.1, averageRating - 4).toFixed(1)} stars`} />
               <SummaryCard icon={Sparkles} label="AI confidence" value="94%" />
             </div>
           </article>

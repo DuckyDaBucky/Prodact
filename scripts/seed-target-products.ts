@@ -75,11 +75,13 @@ async function openInputStream(filePath?: string) {
 }
 
 function normalizeDatabaseUrl(url: string) {
-  if (url.includes("sslmode=require")) {
-    return url.replace("sslmode=require", "sslmode=verify-full");
-  }
+  let normalized = url.trim().replace(/^['"]|['"]$/g, "");
+  normalized = normalized.replace("sslmode=require", "sslmode=verify-full");
+  normalized = normalized.replace(/([?&])channel_binding=require(&?)/, (_match, prefix, suffix) =>
+    suffix ? prefix : "",
+  );
 
-  return url;
+  return normalized;
 }
 
 function cleanString(value: string | undefined) {

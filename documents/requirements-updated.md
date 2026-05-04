@@ -19,7 +19,7 @@ This requirements list reflects the implemented Prodact MVP in this repository. 
 | FR-13 | Product data completeness | The Product Analysis page shall calculate and display a completeness percentage based on populated seeded product fields. | Simra |
 | FR-14 | Product discount signal | The Product Analysis page shall calculate and display a discount signal when initial and final prices show a markdown. | Simra |
 | FR-15 | Currency handling | The Product Analysis page shall normalize seeded currency values such as `$` to a valid display currency before formatting prices. | Simra |
-| FR-16 | Recommendation generation | The system shall generate related product recommendations for a selected product using the local heuristic recommendation service. | Simra |
+| FR-16 | Recommendation generation | The system shall generate related product recommendations for a selected product using Gemini-backed product insight when configured and local heuristic recommendations as fallback. | Simra |
 | FR-17 | Recommendation scoring | The recommendation service shall rank products using category overlap, price proximity, rating quality, and dataset recommendation hints. | Simra |
 | FR-18 | Recommendation reasons | The Product Analysis page shall display explainable reasons for each recommended product match. | Simra |
 | FR-19 | Recommendation persistence | The system shall store recommendation run results in the database for traceability. | Simra |
@@ -44,3 +44,5 @@ This requirements list reflects the implemented Prodact MVP in this repository. 
 | FR-38 | MVP service evidence | The project shall document the Web Scraper, Database, Authentication, and AI Recommendation service mappings in project documentation. | Hasnain |
 | FR-39 | Implementation documentation | The project shall include documentation describing the actual implementation approach, technology stack, and verification steps. | Hasnain |
 | FR-40 | Deployment documentation | The project shall include documentation describing the current demo deployment process, setup steps, route access, and known blockers. | Hasnain |
+| FR-41 | Product search | The system shall provide a protected `/search` page for finding seeded Target products by title, category, or product ID. | Hasnain |
+| FR-42 | Gemini product insight | The system shall process selected seeded product data with Gemini when `GEMINI_API_KEY` is configured and show a fallback insight when Gemini is unavailable. | Hasnain |
