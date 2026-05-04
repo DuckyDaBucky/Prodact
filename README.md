@@ -173,6 +173,11 @@ Required variables:
 - `NEXT_PUBLIC_APP_URL`
   - client-facing URL, usually `http://localhost:3000`
 
+On Vercel, set the same variables in Project Settings. `BETTER_AUTH_URL` and
+`NEXT_PUBLIC_APP_URL` should be the deployed URL or custom domain. The app can
+fall back to Vercel's generated `VERCEL_URL`, but setting explicit URLs is safer
+for the final demo.
+
 Example:
 
 ```env
@@ -211,6 +216,12 @@ npm run db:seed
 ```
 
 This downloads the public Target sample CSV from GitHub and upserts the rows into the `target_product` table.
+
+Verify the seeded demo data and recommendation service:
+
+```bash
+npm run db:verify
+```
 
 If you change the schema later, generate a new migration first:
 
@@ -401,10 +412,41 @@ Recommended workflow:
   - apply migrations to the configured database
 - `npm run db:seed`
   - run the Web Scraper Service to download, normalize, and seed the Target sample dataset into Neon
+- `npm run db:verify`
+  - confirm the seeded Target products can be read and used by the AI Recommendation Service
 - `npm run db:studio`
   - open Drizzle Studio
 - `npm run check`
   - run lint and build together
+
+## Vercel Deployment
+
+This repo includes `vercel.json` so Vercel uses `npm ci` and `npm run build`.
+
+Before deploying, configure these Vercel environment variables for Production and Preview:
+
+- `DATABASE_URL`
+- `BETTER_AUTH_SECRET`
+- `BETTER_AUTH_URL`
+- `NEXT_PUBLIC_APP_URL`
+
+Recommended deployment flow:
+
+```bash
+npm run check
+npm run db:migrate
+npm run db:seed
+npm run db:verify
+```
+
+Then push `main` to GitHub and let Vercel deploy from Git integration, or deploy with the Vercel CLI:
+
+```bash
+vercel
+vercel --prod
+```
+
+After deployment, verify `/login`, `/internal-signup`, `/dashboard`, and `/product-analysis`.
 
 ## Documents
 

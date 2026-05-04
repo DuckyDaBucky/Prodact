@@ -2,16 +2,17 @@
 
 ## Deployment Strategy
 
-- The current repository is not set up for full production deployment automation.
-- Releases are effectively demo releases: the team stabilizes work on `develop`, merges into `main`, and validates the app manually.
-- The architecture is still optimized for classroom delivery rather than continuous public release.
+- The current repository is ready for a Vercel-hosted MVP demo.
+- Releases are still lightweight demo releases: the team validates locally, pushes to `main`, and lets Vercel build the Next.js app from Git integration.
+- `vercel.json` pins the deployment shape to `npm ci` and `npm run build`.
 
 ## Environment Setup
 
-- The main runtime today is each developer's local machine.
-- The application runs with `npm run dev` or a local production check using `npm run build` and `npm run start`.
+- The main development runtime is each developer's local machine.
+- The production demo runtime is Vercel running the Next.js app.
 - Data is backed by Neon Postgres using the configured `DATABASE_URL`.
-- Environment values are stored locally in `.env.local` or `.env`.
+- Environment values are stored locally in `.env.local` or `.env`, and in Vercel Project Settings for deployed previews and production.
+- Required Vercel variables are `DATABASE_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, and `NEXT_PUBLIC_APP_URL`.
 
 ## Release Process
 
@@ -19,12 +20,15 @@
 - Install dependencies with `npm install`.
 - Apply schema changes with `npm run db:migrate`.
 - Load the Target sample data through the Web Scraper Service with `npm run db:seed`.
+- Confirm the seeded products and recommendations with `npm run db:verify`.
 - Run verification with `npm run check`.
-- Start the application and demo `/dashboard`, `/login`, `/internal-signup`, and `/product-analysis`.
+- Push to `main` so Vercel deploys the latest commit, or run `vercel --prod`.
+- Demo `/dashboard`, `/login`, `/internal-signup`, and `/product-analysis`.
 
 ## System Accessibility
 
 - Users access the application through the Next.js web app, typically on `http://localhost:3000`.
+- Deployed users access the Vercel production URL or custom domain.
 - Login happens at `/login`.
 - Demo account setup is available through `/internal-signup`.
 - Protected feature pages, including the seeded Product Analysis route, are available only after authentication.
@@ -39,6 +43,8 @@
   `/internal-signup` creates a demo employee account, `/login` authenticates with employee ID and password, and the protected app layout blocks unauthenticated access.
 - AI Recommendation Service:
   `/product-analysis` reads seeded products, renders ranked recommendations with explainable reasons, and `GET /api/recommendations/[productId]?limit=5` returns recommendation JSON.
+- Vercel Deployment:
+  `npm run check` must pass locally, Vercel must have the required environment variables, and the deployed app must be smoke-tested through login, dashboard, and Product Analysis.
 
 ## Environment Blockers
 
