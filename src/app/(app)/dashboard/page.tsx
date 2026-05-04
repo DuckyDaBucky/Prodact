@@ -1,19 +1,11 @@
 import type { CSSProperties } from "react";
 import {
-  Bell,
   Bot,
   ChartColumnIncreasing,
-  ChevronRight,
   CircleDollarSign,
   Database,
-  LayoutDashboard,
-  MessageSquareText,
   Search,
-  Settings,
   ShieldCheck,
-  ShoppingBag,
-  Sparkles,
-  UserRound,
   type LucideIcon,
 } from "lucide-react";
 
@@ -33,24 +25,6 @@ const budgetSegments = [
   { label: "Pricing", value: 24, color: "#ff7a7a" },
   { label: "Promotions", value: 19, color: "#f3b2b2" },
   { label: "Ops reserve", value: 15, color: "#4b1d1d" },
-];
-
-const navigationItems = [
-  "Dashboard overview",
-  "Sales forecast",
-  "Inventory health",
-  "Pricing watchlist",
-  "Category insights",
-  "Store performance",
-];
-
-const applicationItems = [
-  "Competitor analysis",
-  "Alert center",
-  "Report builder",
-  "Scenario planner",
-  "Assortment review",
-  "Budget tracker",
 ];
 
 const quickCards = [
@@ -128,57 +102,9 @@ export default async function DashboardPage() {
               Target internal intelligence dashboard
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-[var(--target-ink)]">
-            <TopAction icon={MessageSquareText} label="Messages" />
-            <TopAction icon={Bell} label="Notifications" />
-            <TopAction icon={UserRound} label="Profile" />
-            <TopAction icon={Settings} label="Settings" />
-          </div>
         </div>
 
-        <div className="grid gap-5 p-4 xl:grid-cols-[280px_minmax(0,1fr)]">
-          <aside className="rounded-[1.5rem] border border-[var(--border)] bg-[rgba(255,255,255,0.96)] p-4 shadow-[0_12px_30px_rgba(120,54,54,0.06)]">
-            <label className="flex items-center gap-3 rounded-[1.1rem] border border-[var(--border)] bg-white px-4 py-3">
-              <Search className="h-4 w-4 text-[var(--muted)]" />
-              <input
-                type="search"
-                placeholder="Search"
-                className="w-full bg-transparent text-sm text-[var(--target-ink)] outline-none placeholder:text-[var(--muted)]"
-              />
-            </label>
-
-            <div className="mt-6">
-              <p className="font-[family-name:var(--font-heading)] text-2xl font-semibold tracking-tight text-[var(--target-ink)]">
-                Navigation
-              </p>
-              <div className="mt-4 space-y-2">
-                {navigationItems.map((item, index) => (
-                  <SidebarRow
-                    key={item}
-                    label={item}
-                    icon={index === 0 ? LayoutDashboard : ChevronRight}
-                    active={index === 0}
-                  />
-                ))}
-              </div>
-            </div>
-
-            <div className="mt-8">
-              <p className="font-[family-name:var(--font-heading)] text-2xl font-semibold tracking-tight text-[var(--target-ink)]">
-                Applications
-              </p>
-              <div className="mt-4 space-y-2">
-                {applicationItems.map((item, index) => (
-                  <SidebarRow
-                    key={item}
-                    label={item}
-                    icon={index === 0 ? Sparkles : ShoppingBag}
-                  />
-                ))}
-              </div>
-            </div>
-          </aside>
-
+        <div className="p-4">
           <div className="space-y-5">
             <div className="rounded-[1.5rem] border border-[var(--border)] bg-[rgba(255,255,255,0.96)] px-5 py-6 shadow-[0_12px_30px_rgba(120,54,54,0.06)]">
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--target-red)]">
@@ -444,55 +370,6 @@ function ServiceCard({
         Evidence: {evidence}
       </p>
     </article>
-  );
-}
-
-type TopActionProps = {
-  icon: LucideIcon;
-  label: string;
-};
-
-function TopAction({ icon: Icon, label }: TopActionProps) {
-  return (
-    <button
-      type="button"
-      className="inline-flex items-center gap-2 rounded-full border border-transparent px-3 py-2 transition hover:border-[var(--border)] hover:bg-white"
-    >
-      <Icon className="h-4 w-4 text-[var(--target-red)]" />
-      <span>{label}</span>
-    </button>
-  );
-}
-
-type SidebarRowProps = {
-  label: string;
-  icon: LucideIcon;
-  active?: boolean;
-};
-
-function SidebarRow({ label, icon: Icon, active = false }: SidebarRowProps) {
-  return (
-    <button
-      type="button"
-      className={cn(
-        "flex w-full items-center gap-3 rounded-[1rem] px-3 py-3 text-left transition",
-        active
-          ? "bg-red-50 text-[var(--target-ink)]"
-          : "text-[var(--target-ink)] hover:bg-stone-50",
-      )}
-    >
-      <div
-        className={cn(
-          "rounded-full p-2",
-          active
-            ? "bg-white text-[var(--target-red)]"
-            : "bg-stone-100 text-[var(--muted)]",
-        )}
-      >
-        <Icon className="h-4 w-4" />
-      </div>
-      <span className="text-sm font-semibold">{label}</span>
-    </button>
   );
 }
 
