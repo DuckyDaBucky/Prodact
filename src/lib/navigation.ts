@@ -33,7 +33,7 @@ export const navItems = [
   {
     href: "/competitor-analysis",
     label: "Competitor Analysis",
-    description: "Location-level competitor insights and AI actions",
+    description: "Target vs Walmart pricing, stock, sales, and AI readouts",
     icon: Crosshair,
   },
   {
