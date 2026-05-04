@@ -12,9 +12,15 @@ import {
 export const navItems = [
   {
     href: "/dashboard",
-    label: "Store Performance",
+    label: "Dashboard",
     description: "Snapshot of the internal tool shell",
     icon: LayoutDashboard,
+  },
+  {
+    href: "/store-performance",
+    label: "Store Performance",
+    description: "Store sales, customers, refunds, and top products",
+    icon: Store,
   },
   {
     href: "/inventory",
