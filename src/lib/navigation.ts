@@ -4,17 +4,15 @@ import {
   ChartColumnIncreasing,
   Crosshair,
   LayoutDashboard,
-  ReceiptText,
   Send,
   Settings,
   Store,
-  Tags,
 } from "lucide-react";
 
 export const navItems = [
   {
     href: "/dashboard",
-    label: "Dashboard",
+    label: "Store Performance",
     description: "Snapshot of the internal tool shell",
     icon: LayoutDashboard,
   },
@@ -23,12 +21,6 @@ export const navItems = [
     label: "Inventory",
     description: "Placeholder for stock visibility workflows",
     icon: Boxes,
-  },
-  {
-    href: "/pricing",
-    label: "Pricing",
-    description: "Placeholder for competitor pricing work",
-    icon: Tags,
   },
   {
     href: "/competitor-analysis",
@@ -59,12 +51,6 @@ export const navItems = [
     label: "Store Layout",
     description: "Compare current and recommended floor plans",
     icon: Store,
-  },
-  {
-    href: "/reports",
-    label: "Reports",
-    description: "Placeholder for export and executive reports",
-    icon: ReceiptText,
   },
   {
     href: "/settings",
