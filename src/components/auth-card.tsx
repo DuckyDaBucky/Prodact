@@ -16,20 +16,24 @@ export function AuthCard({
   children,
 }: AuthCardProps) {
   return (
-    <div className="w-full max-w-md rounded-[2rem] border border-[var(--border)] bg-[var(--card-strong)] p-8 shadow-[0_24px_70px_rgba(120,54,54,0.14)] backdrop-blur">
-      <BrandLockup subtitle="Target internal product intelligence tool" />
-      <div className="mt-8 space-y-3">
-        <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--target-red)]">
-          {eyebrow}
-        </p>
-        <div className="space-y-2">
-          <h1 className="font-[family-name:var(--font-heading)] text-3xl font-semibold tracking-tight text-[var(--target-ink)]">
+    <div className="w-full max-w-md">
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-7 shadow-[var(--shadow-elevated)]">
+        <BrandLockup subtitle="Target product intelligence" />
+        <div className="mt-7 space-y-2">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--target-red)]">
+            {eyebrow}
+          </p>
+          <h1 className="font-[family-name:var(--font-heading)] text-2xl font-semibold tracking-tight text-[var(--target-ink)]">
             {title}
           </h1>
           <p className="text-sm leading-6 text-[var(--muted)]">{description}</p>
         </div>
+        <div className="mt-7">{children}</div>
       </div>
-      <div className="mt-8">{children}</div>
+      <p className="mt-4 text-center text-xs text-[var(--muted)]">
+        Protected by Target single sign-on. Use of this system is monitored for
+        team-member compliance.
+      </p>
     </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import { startTransition, useState } from "react";
 import { useRouter } from "next/navigation";
+import { LoaderCircle, Lock, UserRound } from "lucide-react";
 
 import { authClient } from "@/lib/auth-client";
 
@@ -38,50 +39,77 @@ export function LoginForm() {
 
   return (
     <form className="space-y-5" onSubmit={handleSubmit}>
-      <div className="space-y-2">
-        <label className="text-sm font-semibold text-[var(--target-ink)]" htmlFor="employee-id">
+      <div className="space-y-1.5">
+        <label
+          className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--muted-strong)]"
+          htmlFor="employee-id"
+        >
           Employee ID
         </label>
-        <input
-          id="employee-id"
-          name="employee-id"
-          value={employeeId}
-          onChange={(event) => setEmployeeId(event.target.value)}
-          placeholder="TM-2048"
-          autoComplete="username"
-          className="w-full rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-base outline-none transition focus:border-[var(--target-red)] focus:ring-4 focus:ring-red-100"
-          required
-        />
+        <div className="relative">
+          <UserRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--muted)]" />
+          <input
+            id="employee-id"
+            name="employee-id"
+            value={employeeId}
+            onChange={(event) => setEmployeeId(event.target.value)}
+            placeholder="TM-2048"
+            autoComplete="username"
+            className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] py-2.5 pl-10 pr-3 text-sm text-[var(--target-ink)] outline-none transition focus:border-[var(--target-red)] focus:ring-2 focus:ring-[var(--ring)]"
+            required
+          />
+        </div>
       </div>
-      <div className="space-y-2">
-        <label className="text-sm font-semibold text-[var(--target-ink)]" htmlFor="password">
-          Password
-        </label>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          autoComplete="current-password"
-          className="w-full rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-base outline-none transition focus:border-[var(--target-red)] focus:ring-4 focus:ring-red-100"
-          required
-        />
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between">
+          <label
+            className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--muted-strong)]"
+            htmlFor="password"
+          >
+            Password
+          </label>
+          <button
+            type="button"
+            className="text-xs font-medium text-[var(--target-red)] hover:underline"
+          >
+            Forgot password?
+          </button>
+        </div>
+        <div className="relative">
+          <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--muted)]" />
+          <input
+            id="password"
+            name="password"
+            type="password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            autoComplete="current-password"
+            className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] py-2.5 pl-10 pr-3 text-sm text-[var(--target-ink)] outline-none transition focus:border-[var(--target-red)] focus:ring-2 focus:ring-[var(--ring)]"
+            required
+          />
+        </div>
       </div>
       {error ? (
-        <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <p className="rounded-lg border border-red-200 bg-[var(--target-red-soft)] px-3 py-2 text-sm text-[var(--target-red-dark)]">
           {error}
         </p>
       ) : null}
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full rounded-2xl bg-[var(--target-red)] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[var(--target-red-dark)] disabled:cursor-not-allowed disabled:opacity-60"
+        className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--target-red)] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--target-red-dark)] disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {isSubmitting ? "Signing in..." : "Enter Prodact"}
+        {isSubmitting ? (
+          <>
+            <LoaderCircle className="h-4 w-4 animate-spin" />
+            Signing in…
+          </>
+        ) : (
+          "Sign in to Prodact"
+        )}
       </button>
-      <p className="text-xs leading-5 text-[var(--muted)]">
-        Access is intended for internal Target team workflows. The account-creation route is intentionally hidden from the main UI.
+      <p className="text-center text-xs leading-5 text-[var(--muted)]">
+        Internal access only. Account creation is provisioned by IT.
       </p>
     </form>
   );

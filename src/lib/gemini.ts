@@ -74,6 +74,12 @@ function cleanGeminiText(text: string) {
     .trim();
 }
 
+function normalizeEnvValue(value: string | undefined, fallback: string) {
+  const normalized = value?.trim().replace(/^["']|["']$/g, "");
+
+  return normalized || fallback;
+}
+
 function buildFallbackInsight(
   product: TargetProductRecord,
   recommendations: Recommendation[] = [],
@@ -200,8 +206,8 @@ export async function generateProductAiInsight(
   product: TargetProductRecord,
   recommendations: Recommendation[] = [],
 ): Promise<ProductAiInsight> {
-  const apiKey = process.env.GEMINI_API_KEY?.trim();
-  const model = process.env.GEMINI_MODEL?.trim() || "gemini-2.5-flash";
+  const apiKey = normalizeEnvValue(process.env.GEMINI_API_KEY, "");
+  const model = normalizeEnvValue(process.env.GEMINI_MODEL, "gemini-3-flash-preview");
 
   if (!apiKey) {
     return buildFallbackInsight(product, recommendations, "No Gemini API key is configured.");

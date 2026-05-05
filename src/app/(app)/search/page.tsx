@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Search, Sparkles } from "lucide-react";
+import { ArrowUpRight, Search, Sparkles, Star } from "lucide-react";
 
 import { ProductAiInsightPanel } from "@/components/product-ai-insight";
 import {
@@ -39,143 +39,159 @@ export default async function ProductSearchPage({ searchParams }: SearchPageProp
     : null;
 
   return (
-    <section className="space-y-6">
-      <div className="rounded-[1.9rem] border border-(--border) bg-(--card-strong) p-6 shadow-[0_24px_70px_rgba(120,54,54,0.08)]">
-        <p className="text-xs font-semibold uppercase tracking-[0.28em] text-(--target-red)">
+    <section className="space-y-5">
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-card)]">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--target-red)]">
           Search
         </p>
-        <div className="mt-3 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div className="mt-2 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h2 className="font-(family-name:--font-heading) text-3xl font-semibold tracking-tight text-(--target-ink)">
+            <h2 className="font-[family-name:var(--font-heading)] text-2xl font-semibold tracking-tight text-[var(--target-ink)]">
               Search seeded Target products
             </h2>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-(--muted)">
-              Results come from the Drizzle `target_product` table. Selecting a product sends its
-              seeded fields and derived signals through Gemini for live demo analysis.
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--muted)]">
+              Results come from the Drizzle <code className="rounded bg-[var(--surface-subtle)] px-1 py-0.5 text-xs">target_product</code> table.
+              Selecting a product sends its seeded fields and derived signals
+              through Gemini for live demo analysis.
             </p>
           </div>
-          <span className="inline-flex items-center gap-2 rounded-full bg-red-50 px-4 py-2 text-sm font-semibold text-(--target-red)">
-            <Sparkles className="h-4 w-4" />
+          <span className="inline-flex items-center gap-1.5 rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
+            <Sparkles className="h-3.5 w-3.5" />
             Gemini-ready
           </span>
         </div>
 
-        <form className="mt-6 flex flex-col gap-3 sm:flex-row" action="/search">
+        <form className="mt-5 flex flex-col gap-2 sm:flex-row" action="/search">
           <label className="relative flex-1">
             <span className="sr-only">Search products</span>
-            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-(--muted)" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--muted)]" />
             <input
-              className="w-full rounded-2xl border border-(--border) bg-white py-3 pl-11 pr-4 text-sm text-(--target-ink) outline-none transition focus:border-(--target-red)"
+              className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface-subtle)] py-2.5 pl-10 pr-3 text-sm text-[var(--target-ink)] outline-none transition focus:border-[var(--target-red)] focus:bg-[var(--surface)] focus:ring-2 focus:ring-[var(--ring)]"
               defaultValue={query}
               name="q"
               placeholder="Search by item, category, or product ID"
             />
           </label>
           <button
-            className="rounded-2xl bg-(--target-red) px-6 py-3 text-sm font-semibold text-white transition hover:bg-(--target-red-dark)"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-[var(--target-red)] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--target-red-dark)]"
             type="submit"
           >
+            <Search className="h-4 w-4" />
             Search
           </button>
         </form>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-        <section className="rounded-[1.8rem] border border-(--border) bg-white p-5">
-          <div className="flex items-center justify-between gap-4">
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+        <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-card)]">
+          <div className="flex items-center justify-between gap-4 border-b border-[var(--border)] px-5 py-4">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-(--target-red)">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--muted-strong)]">
                 Dataset results
               </p>
-              <h3 className="mt-2 text-xl font-semibold text-(--target-ink)">
+              <h3 className="mt-0.5 text-base font-semibold text-[var(--target-ink)]">
                 {products.length} seeded products found
               </h3>
             </div>
-            <span className="rounded-full bg-(--card) px-3 py-1 text-xs font-semibold text-(--muted)">
+            <span className="rounded-md border border-[var(--border)] bg-[var(--surface-subtle)] px-2 py-1 font-mono text-[11px] text-[var(--muted-strong)]">
               target_product
             </span>
           </div>
 
-          <div className="mt-5 space-y-3">
+          <div className="divide-y divide-[var(--border)]">
             {products.map((product) => {
               const signals = deriveProductSignals(product);
               const isSelected = product.productId === selectedProduct?.productId;
+              const riskClass = riskBadgeClass(signals.inventoryRisk);
 
               return (
                 <Link
                   key={product.productId}
                   className={[
-                    "block rounded-[1.25rem] border p-4 transition",
+                    "block px-5 py-4 transition",
                     isSelected
-                      ? "border-red-200 bg-red-50/60"
-                      : "border-(--border) bg-(--card) hover:border-red-200 hover:bg-red-50/35",
+                      ? "bg-[var(--target-red-soft)]"
+                      : "hover:bg-[var(--surface-subtle)]",
                   ].join(" ")}
                   href={`/search?q=${encodeURIComponent(query)}&productId=${encodeURIComponent(
                     product.productId,
                   )}`}
                 >
                   <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <p className="line-clamp-2 text-sm font-semibold text-(--target-ink)">
+                    <div className="min-w-0">
+                      <p className="line-clamp-2 text-sm font-semibold text-[var(--target-ink)]">
                         {product.title}
                       </p>
-                      <p className="mt-1 text-xs text-(--muted)">
-                        {product.primaryCategory ?? "Uncategorized"} - {product.productId}
+                      <p className="mt-0.5 truncate text-xs text-[var(--muted)]">
+                        {product.primaryCategory ?? "Uncategorized"} &middot;{" "}
+                        <span className="font-mono">{product.productId}</span>
                       </p>
                     </div>
-                    <span className="shrink-0 rounded-full bg-white px-3 py-1 text-xs font-semibold text-(--target-red)">
+                    <span className="shrink-0 rounded-md border border-[var(--border)] bg-[var(--surface)] px-2 py-1 text-xs font-semibold text-[var(--target-red)]">
                       {formatCurrency(product.finalPrice, product.currency)}
                     </span>
                   </div>
-                  <div className="mt-3 flex flex-wrap gap-2 text-xs text-(--muted)">
-                    <span>{product.rating ?? "n/a"} stars</span>
-                    <span>{formatNumber(product.reviewsCount)} reviews</span>
-                    <span>{signals.stockOnHand} on hand</span>
-                    <span>{signals.inventoryRisk} restock risk</span>
+                  <div className="mt-2.5 flex flex-wrap items-center gap-1.5 text-[11px]">
+                    <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-2 py-0.5 font-medium text-amber-700">
+                      <Star className="h-3 w-3 fill-amber-500 text-amber-500" />
+                      {product.rating ?? "n/a"}
+                    </span>
+                    <span className="rounded-md bg-[var(--surface-subtle)] px-2 py-0.5 text-[var(--muted-strong)]">
+                      {formatNumber(product.reviewsCount)} reviews
+                    </span>
+                    <span className="rounded-md bg-[var(--surface-subtle)] px-2 py-0.5 text-[var(--muted-strong)]">
+                      {signals.stockOnHand} on hand
+                    </span>
+                    <span className={riskClass}>{signals.inventoryRisk} risk</span>
                   </div>
                 </Link>
               );
             })}
 
             {products.length === 0 ? (
-              <div className="rounded-[1.25rem] border border-dashed border-red-200 bg-red-50/50 p-5 text-sm text-(--muted)">
-                No seeded products matched that search. Run `npm run db:seed` if the Target data
-                has not been loaded yet.
+              <div className="m-5 rounded-lg border border-dashed border-[var(--border-strong)] bg-[var(--surface-subtle)] p-5 text-sm text-[var(--muted)]">
+                No seeded products matched that search. Run{" "}
+                <code className="rounded bg-[var(--surface)] px-1 py-0.5 text-xs">
+                  npm run db:seed
+                </code>{" "}
+                if the Target data has not been loaded yet.
               </div>
             ) : null}
           </div>
         </section>
 
-        <div className="space-y-5">
+        <div className="space-y-4">
           {selectedProduct && insight ? (
             <>
-              <section className="rounded-[1.8rem] border border-(--border) bg-white p-5">
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-(--target-red)">
+              <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-card)]">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--target-red)]">
                   Selected result
                 </p>
-                <h3 className="mt-2 text-2xl font-semibold text-(--target-ink)">
+                <h3 className="mt-1 text-xl font-semibold text-[var(--target-ink)]">
                   {selectedProduct.title}
                 </h3>
-                <p className="mt-2 text-sm leading-6 text-(--muted)">
+                <p className="mt-2 text-sm leading-6 text-[var(--muted-strong)]">
                   {selectedProduct.productDescription ??
                     "This seeded row did not include a product description."}
                 </p>
                 <div className="mt-4 flex flex-wrap gap-2">
                   <Link
-                    className="rounded-full bg-(--target-red) px-4 py-2 text-sm font-semibold text-white"
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--target-red)] px-3.5 py-2 text-sm font-medium text-white transition hover:bg-[var(--target-red-dark)]"
                     href={`/product-analysis?productId=${encodeURIComponent(
                       selectedProduct.productId,
                     )}`}
                   >
                     Open Product Analysis
+                    <ArrowUpRight className="h-4 w-4" />
                   </Link>
                   <Link
-                    className="rounded-full border border-(--border) bg-white px-4 py-2 text-sm font-semibold text-(--target-ink)"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3.5 py-2 text-sm font-medium text-[var(--target-ink)] transition hover:bg-[var(--surface-subtle)]"
                     href={selectedProduct.url}
                     rel="noreferrer"
                     target="_blank"
                   >
                     Open Target listing
+                    <ArrowUpRight className="h-4 w-4 text-[var(--muted)]" />
                   </Link>
                 </div>
               </section>
@@ -183,7 +199,7 @@ export default async function ProductSearchPage({ searchParams }: SearchPageProp
               <ProductAiInsightPanel insight={insight} />
             </>
           ) : (
-            <div className="rounded-[1.8rem] border border-dashed border-red-200 bg-red-50/50 p-6 text-sm leading-6 text-(--muted)">
+            <div className="rounded-2xl border border-dashed border-[var(--border-strong)] bg-[var(--surface-subtle)] p-6 text-sm leading-6 text-[var(--muted)]">
               Search for a seeded product to run Gemini-backed product analysis.
             </div>
           )}
@@ -191,4 +207,18 @@ export default async function ProductSearchPage({ searchParams }: SearchPageProp
       </div>
     </section>
   );
+}
+
+function riskBadgeClass(risk: "low" | "medium" | "high") {
+  const base = "rounded-md px-2 py-0.5 font-medium capitalize";
+
+  if (risk === "high") {
+    return `${base} bg-[var(--target-red-soft)] text-[var(--target-red)]`;
+  }
+
+  if (risk === "medium") {
+    return `${base} bg-amber-50 text-amber-700`;
+  }
+
+  return `${base} bg-emerald-50 text-emerald-700`;
 }

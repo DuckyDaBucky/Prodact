@@ -26,10 +26,10 @@ export function LogoutButton() {
       type="button"
       onClick={handleSignOut}
       disabled={isSubmitting}
-      className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-white px-4 py-2 text-sm font-semibold text-[var(--target-ink)] transition hover:border-red-200 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+      className="inline-flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3.5 py-2 text-sm font-medium text-[var(--target-ink)] transition hover:border-[var(--border-strong)] hover:bg-[var(--surface-subtle)] disabled:cursor-not-allowed disabled:opacity-60"
     >
-      <LogOut className="h-4 w-4" />
-      {isSubmitting ? "Signing out..." : "Log out"}
+      <LogOut className="h-4 w-4 text-[var(--muted)]" />
+      {isSubmitting ? "Signing out…" : "Log out"}
     </button>
   );
 }

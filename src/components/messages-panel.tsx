@@ -146,226 +146,254 @@ export function MessagesPanel({
   const activeRecipientId = activeThread?.recipient.id ?? null;
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[24rem_minmax(0,1fr)]">
-      <aside className="space-y-6 rounded-[2rem] border border-[var(--border)] bg-[var(--card-strong)] p-5 shadow-[0_24px_70px_rgba(120,54,54,0.08)] sm:p-6">
-        <div className="space-y-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--target-red)]">
-            Employee Directory
+    <div className="grid gap-4 xl:grid-cols-[22rem_minmax(0,1fr)]">
+      <aside className="flex flex-col rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-card)]">
+        <div className="border-b border-[var(--border)] p-4">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--muted-strong)]">
+            Employee directory
           </p>
           <label
             htmlFor="message-search"
-            className="flex items-center gap-3 rounded-full border border-[var(--border)] bg-[linear-gradient(135deg,rgba(35,24,21,0.08),rgba(255,255,255,0.96))] px-5 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]"
+            className="mt-3 flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface-subtle)] px-3 py-2 transition focus-within:border-[var(--target-red)] focus-within:bg-[var(--surface)]"
           >
             {isLoadingSearch ? (
-              <LoaderCircle className="h-6 w-6 animate-spin text-[var(--muted)]" />
+              <LoaderCircle className="h-4 w-4 animate-spin text-[var(--muted)]" />
             ) : (
-              <Search className="h-6 w-6 text-[var(--muted)]" />
+              <Search className="h-4 w-4 text-[var(--muted)]" />
             )}
             <input
               id="message-search"
               type="search"
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Search by name"
-              className="w-full bg-transparent text-lg font-semibold tracking-tight text-[var(--target-ink)] outline-none placeholder:text-[var(--target-ink)]/70"
+              placeholder="Search by name or employee ID"
+              className="w-full bg-transparent text-sm text-[var(--target-ink)] outline-none placeholder:text-[var(--muted)]"
             />
           </label>
-          <p className="text-sm text-[var(--muted)]">
-            Type at least two characters to look up a coworker and start a direct conversation.
+          <p className="mt-2 text-xs text-[var(--muted)]">
+            Type at least two characters to find a coworker.
           </p>
         </div>
 
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="font-[family-name:var(--font-heading)] text-2xl font-semibold tracking-tight text-[var(--target-ink)]">
-              Recent Threads
-            </h2>
-            <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-[var(--target-ink)] ring-1 ring-[var(--border)]">
-              {threads.length}
-            </span>
-          </div>
+        <div className="flex items-center justify-between border-b border-[var(--border)] px-4 py-3">
+          <h2 className="text-sm font-semibold text-[var(--target-ink)]">
+            Recent threads
+          </h2>
+          <span className="rounded-md bg-[var(--surface-subtle)] px-2 py-0.5 text-[11px] font-semibold text-[var(--muted-strong)]">
+            {threads.length}
+          </span>
+        </div>
 
+        <div className="flex-1 overflow-y-auto p-2">
           {searchQuery.trim().length >= 2 ? (
-            <div className="space-y-2">
+            <div className="space-y-1">
               {searchResults.length > 0 ? (
                 searchResults.map((result) => (
                   <button
                     key={result.id}
                     type="button"
                     onClick={() => loadThread(result.id)}
-                    className="flex w-full items-center gap-3 rounded-[1.5rem] border border-[var(--border)] bg-white/80 px-4 py-3 text-left transition hover:border-[var(--target-red)] hover:bg-white"
+                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition hover:bg-[var(--surface-subtle)]"
                   >
-                    <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-red-50 text-[var(--target-red)]">
-                      <UserRound className="h-5 w-5" />
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--target-red-soft)] text-[var(--target-red)]">
+                      <UserRound className="h-4 w-4" />
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate font-semibold text-[var(--target-ink)]">
+                      <span className="block truncate text-sm font-medium text-[var(--target-ink)]">
                         {result.name}
                       </span>
-                      <span className="block truncate text-sm text-[var(--muted)]">
+                      <span className="block truncate text-xs text-[var(--muted)]">
                         {result.employeeId}
                       </span>
                     </span>
                   </button>
                 ))
               ) : (
-                <div className="rounded-[1.5rem] border border-dashed border-[var(--border)] bg-white/70 px-4 py-5 text-sm text-[var(--muted)]">
+                <div className="rounded-lg border border-dashed border-[var(--border)] bg-[var(--surface-subtle)] px-3 py-4 text-sm text-[var(--muted)]">
                   No matching employees found yet.
                 </div>
               )}
             </div>
           ) : threads.length > 0 ? (
-            <div className="space-y-2">
-              {threads.map((thread) => (
-                <button
-                  key={thread.recipient.id}
-                  type="button"
-                  onClick={() => loadThread(thread.recipient.id)}
-                  className={`flex w-full items-start gap-3 rounded-[1.5rem] border px-4 py-3 text-left transition ${
-                    activeRecipientId === thread.recipient.id
-                      ? "border-[var(--target-red)] bg-red-50/70"
-                      : "border-[var(--border)] bg-white/80 hover:border-[var(--target-red)] hover:bg-white"
-                  }`}
-                >
-                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white text-[var(--target-red)] ring-1 ring-[var(--border)]">
-                    <UserRound className="h-5 w-5" />
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="flex items-center justify-between gap-3">
-                      <span className="truncate font-semibold text-[var(--target-ink)]">
-                        {thread.recipient.name}
-                      </span>
-                      {thread.lastMessage ? (
-                        <span className="shrink-0 text-xs text-[var(--muted)]">
-                          {formatTimestamp(thread.lastMessage.createdAt)}
+            <div className="space-y-0.5">
+              {threads.map((thread) => {
+                const isActive = activeRecipientId === thread.recipient.id;
+
+                return (
+                  <button
+                    key={thread.recipient.id}
+                    type="button"
+                    onClick={() => loadThread(thread.recipient.id)}
+                    className={`flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left transition ${
+                      isActive
+                        ? "bg-[var(--target-red-soft)]"
+                        : "hover:bg-[var(--surface-subtle)]"
+                    }`}
+                  >
+                    <span
+                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
+                        isActive
+                          ? "bg-[var(--target-red)] text-white"
+                          : "bg-[var(--surface-subtle)] text-[var(--muted-strong)]"
+                      }`}
+                    >
+                      {thread.recipient.name.slice(0, 2).toUpperCase()}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="flex items-center justify-between gap-3">
+                        <span
+                          className={`truncate text-sm font-medium ${
+                            isActive
+                              ? "text-[var(--target-red-dark)]"
+                              : "text-[var(--target-ink)]"
+                          }`}
+                        >
+                          {thread.recipient.name}
                         </span>
-                      ) : null}
+                        {thread.lastMessage ? (
+                          <span className="shrink-0 text-[11px] text-[var(--muted)]">
+                            {formatTimestamp(thread.lastMessage.createdAt)}
+                          </span>
+                        ) : null}
+                      </span>
+                      <span className="mt-0.5 block truncate text-xs text-[var(--muted)]">
+                        {thread.lastMessage?.body ?? "No messages yet."}
+                      </span>
                     </span>
-                    <span className="mt-1 block truncate text-sm text-[var(--muted)]">
-                      {thread.lastMessage?.body ?? "No messages yet."}
-                    </span>
-                  </span>
-                </button>
-              ))}
+                  </button>
+                );
+              })}
             </div>
           ) : (
-            <div className="rounded-[1.6rem] border border-dashed border-[var(--border)] bg-white/70 px-5 py-6 text-sm leading-6 text-[var(--muted)]">
-              No conversations yet. Search for an employee by name to send the first message.
+            <div className="m-2 rounded-lg border border-dashed border-[var(--border)] bg-[var(--surface-subtle)] px-4 py-6 text-sm leading-6 text-[var(--muted)]">
+              No conversations yet. Search for an employee by name to send the
+              first message.
             </div>
           )}
         </div>
       </aside>
 
-      <section className="rounded-[2rem] border border-[var(--border)] bg-[var(--card-strong)] p-5 shadow-[0_24px_70px_rgba(120,54,54,0.08)] sm:p-7">
-        <div className="flex min-h-[38rem] flex-col rounded-[1.8rem] bg-[linear-gradient(180deg,rgba(35,24,21,0.06),rgba(35,24,21,0.03))] px-6 py-8 sm:px-8 sm:py-10">
-          {activeThread ? (
-            <>
-              <div className="flex items-center justify-between gap-4 border-b border-[var(--border)] pb-4">
+      <section className="flex min-h-[38rem] flex-col rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-card)]">
+        {activeThread ? (
+          <>
+            <div className="flex items-center justify-between gap-4 border-b border-[var(--border)] px-6 py-4">
+              <div className="flex items-center gap-3">
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--target-red-soft)] text-sm font-semibold text-[var(--target-red)]">
+                  {activeThread.recipient.name.slice(0, 2).toUpperCase()}
+                </span>
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--target-red)]">
-                    Direct Messages
-                  </p>
-                  <h2 className="mt-2 font-[family-name:var(--font-heading)] text-3xl font-semibold tracking-tight text-[var(--target-ink)]">
+                  <h2 className="text-base font-semibold text-[var(--target-ink)]">
                     {activeThread.recipient.name}
                   </h2>
-                  <p className="mt-1 text-sm text-[var(--muted)]">
+                  <p className="text-xs text-[var(--muted)]">
                     Employee ID: {activeThread.recipient.employeeId}
                   </p>
                 </div>
-                <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-white/80 text-[var(--target-ink)] ring-1 ring-[var(--border)]">
-                  {isLoadingThread ? (
-                    <LoaderCircle className="h-6 w-6 animate-spin" />
-                  ) : (
-                    <SendHorizontal className="h-6 w-6" />
-                  )}
-                </span>
               </div>
+              <span className="inline-flex items-center gap-1.5 rounded-md bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                Active
+              </span>
+            </div>
 
-              <div className="flex-1 space-y-4 overflow-y-auto py-6">
-                {activeThread.messages.length > 0 ? (
-                  activeThread.messages.map((message) => {
-                    const isCurrentUser = message.senderId === currentUserId;
+            <div className="flex-1 space-y-3 overflow-y-auto bg-[var(--surface-subtle)] px-6 py-5">
+              {activeThread.messages.length > 0 ? (
+                activeThread.messages.map((message) => {
+                  const isCurrentUser = message.senderId === currentUserId;
 
-                    return (
+                  return (
+                    <div
+                      key={message.id}
+                      className={`flex ${isCurrentUser ? "justify-end" : "justify-start"}`}
+                    >
                       <div
-                        key={message.id}
-                        className={`flex ${isCurrentUser ? "justify-end" : "justify-start"}`}
+                        className={`max-w-[36rem] rounded-2xl px-4 py-2.5 ${
+                          isCurrentUser
+                            ? "rounded-br-md bg-[var(--target-red)] text-white"
+                            : "rounded-bl-md border border-[var(--border)] bg-[var(--surface)] text-[var(--target-ink)]"
+                        }`}
                       >
-                        <div
-                          className={`max-w-[36rem] rounded-[1.6rem] px-4 py-3 shadow-sm ${
-                            isCurrentUser
-                              ? "bg-[var(--target-red)] text-white"
-                              : "border border-[var(--border)] bg-white text-[var(--target-ink)]"
+                        <p className="text-sm leading-6">{message.body}</p>
+                        <p
+                          className={`mt-1 text-[11px] ${
+                            isCurrentUser ? "text-white/75" : "text-[var(--muted)]"
                           }`}
                         >
-                          <p className="text-sm leading-6">{message.body}</p>
-                          <p
-                            className={`mt-2 text-xs ${
-                              isCurrentUser ? "text-white/80" : "text-[var(--muted)]"
-                            }`}
-                          >
-                            {formatTimestamp(message.createdAt)}
-                          </p>
-                        </div>
+                          {formatTimestamp(message.createdAt)}
+                        </p>
                       </div>
-                    );
-                  })
-                ) : (
-                  <div className="flex h-full items-center justify-center">
-                    <div className="max-w-md rounded-[1.8rem] border border-dashed border-[var(--border)] bg-white/75 px-8 py-10 text-center">
-                      <p className="font-[family-name:var(--font-heading)] text-3xl font-semibold tracking-tight text-[var(--target-ink)]">
-                        Start the conversation
-                      </p>
-                      <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
-                        This thread is ready. Send a message below and the conversation will be created automatically.
-                      </p>
                     </div>
+                  );
+                })
+              ) : (
+                <div className="flex h-full items-center justify-center">
+                  <div className="max-w-md rounded-xl border border-dashed border-[var(--border)] bg-[var(--surface)] px-8 py-10 text-center">
+                    <p className="text-base font-semibold text-[var(--target-ink)]">
+                      Start the conversation
+                    </p>
+                    <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
+                      Send a message below and the conversation will be created
+                      automatically.
+                    </p>
                   </div>
-                )}
-              </div>
-
-              <form onSubmit={handleSendMessage} className="space-y-3 border-t border-[var(--border)] pt-5">
-                <textarea
-                  value={composer}
-                  onChange={(event) => setComposer(event.target.value)}
-                  placeholder={`Message ${activeThread.recipient.name}`}
-                  rows={4}
-                  className="w-full resize-none rounded-[1.5rem] border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--target-ink)] outline-none transition focus:border-[var(--target-red)] focus:ring-4 focus:ring-red-100"
-                />
-                <div className="flex items-center justify-between gap-4">
-                  <p className="text-sm text-[var(--muted)]">
-                    Search anyone by name to switch recipients. No friend request step needed.
-                  </p>
-                  <button
-                    type="submit"
-                    disabled={isSending || !composer.trim()}
-                    className="inline-flex items-center gap-2 rounded-full bg-[var(--target-red)] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[var(--target-red-dark)] disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {isSending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <SendHorizontal className="h-4 w-4" />}
-                    Send
-                  </button>
                 </div>
-              </form>
-            </>
-          ) : (
-            <div className="flex flex-1 items-center justify-center">
-              <div className="w-full max-w-2xl rounded-[1.8rem] border border-dashed border-[var(--border)] bg-white/70 px-8 py-12 text-center">
-                <p className="font-[family-name:var(--font-heading)] text-4xl font-semibold tracking-tight text-[var(--target-ink)] sm:text-5xl">
-                  Pick an employee
-                </p>
-                <p className="mt-4 text-sm leading-6 text-[var(--muted)]">
-                  Search by name to open a direct thread, or select an existing conversation from the list.
-                </p>
-              </div>
+              )}
             </div>
-          )}
 
-          {error ? (
-            <div className="mt-4 rounded-[1.4rem] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-              {error}
+            <form
+              onSubmit={handleSendMessage}
+              className="border-t border-[var(--border)] px-6 py-4"
+            >
+              <textarea
+                value={composer}
+                onChange={(event) => setComposer(event.target.value)}
+                placeholder={`Message ${activeThread.recipient.name}`}
+                rows={3}
+                className="w-full resize-none rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2.5 text-sm text-[var(--target-ink)] outline-none transition focus:border-[var(--target-red)] focus:ring-2 focus:ring-[var(--ring)]"
+              />
+              <div className="mt-3 flex items-center justify-between gap-4">
+                <p className="text-xs text-[var(--muted)]">
+                  Press <kbd className="rounded border border-[var(--border)] bg-[var(--surface-subtle)] px-1 text-[10px]">Enter</kbd> + <kbd className="rounded border border-[var(--border)] bg-[var(--surface-subtle)] px-1 text-[10px]">Shift</kbd> for a new line.
+                </p>
+                <button
+                  type="submit"
+                  disabled={isSending || !composer.trim()}
+                  className="inline-flex items-center gap-2 rounded-lg bg-[var(--target-red)] px-3.5 py-2 text-sm font-medium text-white transition hover:bg-[var(--target-red-dark)] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isSending ? (
+                    <LoaderCircle className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <SendHorizontal className="h-4 w-4" />
+                  )}
+                  Send
+                </button>
+              </div>
+            </form>
+          </>
+        ) : (
+          <div className="flex flex-1 items-center justify-center p-8">
+            <div className="w-full max-w-2xl rounded-xl border border-dashed border-[var(--border)] bg-[var(--surface-subtle)] px-8 py-12 text-center">
+              <p className="font-[family-name:var(--font-heading)] text-2xl font-semibold tracking-tight text-[var(--target-ink)]">
+                Pick an employee
+              </p>
+              <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
+                Search by name to open a direct thread, or select an existing
+                conversation from the list.
+              </p>
             </div>
-          ) : null}
-        </div>
+          </div>
+        )}
+
+        {error ? (
+          <div className="border-t border-red-200 bg-[var(--target-red-soft)] px-6 py-3 text-sm text-[var(--target-red-dark)]">
+            {error}
+          </div>
+        ) : null}
+        {isLoadingThread ? (
+          <div className="border-t border-[var(--border)] bg-[var(--surface-subtle)] px-6 py-2 text-xs text-[var(--muted)]">
+            Loading conversation…
+          </div>
+        ) : null}
       </section>
     </div>
   );

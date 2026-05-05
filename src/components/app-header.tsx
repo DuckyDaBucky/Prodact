@@ -1,4 +1,5 @@
-import { ShieldCheck } from "lucide-react";
+import Link from "next/link";
+import { Bell, Search, ShieldCheck } from "lucide-react";
 
 import type { AuthSession } from "@/lib/auth";
 
@@ -9,28 +10,71 @@ type AppHeaderProps = {
 };
 
 export function AppHeader({ session }: AppHeaderProps) {
+  const displayName = session.user.name || session.user.employeeId;
+  const initials = getInitials(displayName);
+
   return (
-    <header className="flex flex-col gap-4 rounded-[2rem] border border-[var(--border)] bg-[var(--card)] px-6 py-5 shadow-[0_24px_70px_rgba(120,54,54,0.08)] backdrop-blur lg:flex-row lg:items-center lg:justify-between">
-      <div className="space-y-2">
-        <div className="inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-[var(--target-red)]">
-          <ShieldCheck className="h-3.5 w-3.5" />
-          Internal Access
+    <header className="flex flex-col gap-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-5 py-4 shadow-[var(--shadow-card)] lg:flex-row lg:items-center lg:justify-between">
+      <div className="min-w-0 space-y-1.5">
+        <div className="inline-flex items-center gap-1.5 rounded-md bg-[var(--target-red-soft)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--target-red)]">
+          <ShieldCheck className="h-3 w-3" />
+          Internal access
         </div>
-        <div>
-          <h1 className="font-[family-name:var(--font-heading)] text-2xl font-semibold tracking-tight text-[var(--target-ink)]">
-            Welcome back, {session.user.name || session.user.employeeId}
-          </h1>
-          <p className="mt-1 text-sm text-[var(--muted)]">
-            This boilerplate protects the core navigation and gives your team a shared shell for PA4 feature work.
-          </p>
-        </div>
+        <h1 className="font-[family-name:var(--font-heading)] text-xl font-semibold tracking-tight text-[var(--target-ink)]">
+          Welcome back, {displayName}
+        </h1>
+        <p className="text-sm text-[var(--muted)]">
+          Today&rsquo;s product intelligence summary is ready for review.
+        </p>
       </div>
-      <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
-        <div className="rounded-full border border-[var(--border)] bg-white px-4 py-2 text-sm text-[var(--target-ink)]">
-          Role: <span className="font-semibold">{session.user.role ?? "employee"}</span>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <Link
+          href="/search"
+          className="hidden items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface-subtle)] px-3 py-2 text-sm text-[var(--muted)] transition hover:border-[var(--border-strong)] hover:text-[var(--target-ink)] sm:inline-flex"
+        >
+          <Search className="h-4 w-4" />
+          <span>Search products…</span>
+          <kbd className="ml-2 hidden rounded border border-[var(--border)] bg-white px-1.5 py-0.5 text-[10px] font-medium text-[var(--muted)] md:inline">
+            /
+          </kbd>
+        </Link>
+        <Link
+          href="/alerts"
+          aria-label="View notifications"
+          className="relative inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--surface)] text-[var(--muted)] transition hover:border-[var(--border-strong)] hover:text-[var(--target-ink)]"
+        >
+          <Bell className="h-4 w-4" />
+          <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-[var(--target-red)] ring-2 ring-[var(--surface)]" />
+        </Link>
+        <div className="flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2.5 py-1.5">
+          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--target-red)] text-[11px] font-semibold text-white">
+            {initials}
+          </span>
+          <div className="hidden text-left sm:block">
+            <p className="text-xs font-semibold leading-tight text-[var(--target-ink)]">
+              {displayName}
+            </p>
+            <p className="text-[10px] uppercase tracking-[0.14em] text-[var(--muted)]">
+              {session.user.role ?? "employee"}
+            </p>
+          </div>
         </div>
         <LogoutButton />
       </div>
     </header>
   );
+}
+
+function getInitials(name: string): string {
+  const trimmed = name.trim();
+  if (!trimmed) return "TM";
+
+  const parts = trimmed.split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) {
+    return (parts[0]![0]! + parts[parts.length - 1]![0]!).toUpperCase();
+  }
+
+  const candidate = parts[0]!;
+  return candidate.slice(0, 2).toUpperCase();
 }

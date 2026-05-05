@@ -1,6 +1,5 @@
 "use client";
 
-import type { CSSProperties } from "react";
 import { useState } from "react";
 import {
   Bell,
@@ -624,238 +623,233 @@ const tabContent: Record<SettingsTabId, TabContent> = {
   },
 };
 
-const surfaceGridStyle: CSSProperties = {
-  backgroundImage:
-    "linear-gradient(to right, rgba(75, 29, 29, 0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(75, 29, 29, 0.05) 1px, transparent 1px)",
-  backgroundSize: "24px 24px",
-};
-
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<SettingsTabId>("workspace-profile");
   const activeContent = tabContent[activeTab];
 
   return (
-    <section
-      className="overflow-hidden rounded-[2rem] border border-[var(--border)] bg-[var(--card-strong)] p-4 shadow-[0_24px_70px_rgba(120,54,54,0.08)] backdrop-blur sm:p-6"
-      style={surfaceGridStyle}
-    >
-      <div className="grid gap-5 xl:grid-cols-[320px_minmax(0,1fr)]">
-        <aside className="rounded-[1.8rem] border border-[var(--border)] bg-[rgba(255,255,255,0.94)] p-5 shadow-[0_16px_40px_rgba(120,54,54,0.08)]">
+    <section className="grid gap-4 xl:grid-cols-[300px_minmax(0,1fr)]">
+      <aside className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-card)]">
+        <div className="border-b border-[var(--border)] p-5">
           <div className="flex items-start gap-3">
-            <div className="rounded-full bg-red-50 p-3 text-[var(--target-red)]">
-              <Settings className="h-5 w-5" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-md bg-[var(--target-red-soft)] text-[var(--target-red)]">
+              <Settings className="h-4 w-4" />
             </div>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--target-red)]">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--target-red)]">
                 Settings
               </p>
-              <h2 className="mt-1 font-[family-name:var(--font-heading)] text-3xl font-semibold tracking-tight text-[var(--target-ink)]">
+              <h2 className="mt-0.5 font-[family-name:var(--font-heading)] text-lg font-semibold tracking-tight text-[var(--target-ink)]">
                 Target workspace
               </h2>
-              <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-                Adjust profile details and AI preferences for the internal product analysis workspace.
+              <p className="mt-1 text-xs leading-5 text-[var(--muted)]">
+                Adjust profile details and AI preferences for the internal
+                workspace.
               </p>
             </div>
           </div>
+        </div>
 
-          <div className="mt-6 rounded-[1.4rem] border border-red-100 bg-red-50/70 p-4">
-            <p className="text-sm font-semibold text-[var(--target-ink)]">
-              Shared team defaults
+        <div className="px-3 py-4">
+          {settingsGroups.map((group, groupIndex) => (
+            <div key={group.title} className={groupIndex > 0 ? "mt-4" : undefined}>
+              <p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--muted)]">
+                {group.title}
+              </p>
+              <div className="space-y-0.5">
+                {group.items.map((item) => {
+                  const isActive = item.id === activeTab;
+                  const Icon = item.icon;
+
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => setActiveTab(item.id)}
+                      className={cn(
+                        "group relative flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left transition",
+                        isActive
+                          ? "bg-[var(--target-red-soft)]"
+                          : "hover:bg-[var(--surface-subtle)]",
+                      )}
+                    >
+                      {isActive ? (
+                        <span className="absolute inset-y-1.5 left-0 w-0.5 rounded-full bg-[var(--target-red)]" />
+                      ) : null}
+                      <Icon
+                        className={cn(
+                          "mt-0.5 h-4 w-4 shrink-0",
+                          isActive
+                            ? "text-[var(--target-red)]"
+                            : "text-[var(--muted)]",
+                        )}
+                      />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <p
+                            className={cn(
+                              "text-sm font-medium",
+                              isActive
+                                ? "text-[var(--target-red-dark)]"
+                                : "text-[var(--target-ink)]",
+                            )}
+                          >
+                            {item.label}
+                          </p>
+                          <ChevronRight
+                            className={cn(
+                              "h-4 w-4 shrink-0",
+                              isActive
+                                ? "text-[var(--target-red)]"
+                                : "text-[var(--muted)] opacity-0 group-hover:opacity-100",
+                            )}
+                          />
+                        </div>
+                        <p className="mt-0.5 text-xs leading-5 text-[var(--muted)]">
+                          {item.description}
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      </aside>
+
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-card)]">
+        <div className="flex flex-col gap-4 border-b border-[var(--border)] px-6 py-5 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--target-red)]">
+              {activeContent.eyebrow}
             </p>
-            <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-              Changes here shape what merch, pricing, and operations teams see first when they open Prodact.
+            <h3 className="mt-1 font-[family-name:var(--font-heading)] text-2xl font-semibold tracking-tight text-[var(--target-ink)]">
+              {activeContent.title}
+            </h3>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--muted)]">
+              {activeContent.description}
             </p>
           </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-sm font-medium text-[var(--target-ink)] transition hover:bg-[var(--surface-subtle)]"
+            >
+              <Eye className="h-4 w-4 text-[var(--muted)]" />
+              Preview impact
+            </button>
+            <button
+              type="button"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--target-red)] px-3.5 py-1.5 text-sm font-medium text-white transition hover:bg-[var(--target-red-dark)]"
+            >
+              <Check className="h-4 w-4" />
+              Save changes
+            </button>
+          </div>
+        </div>
 
-          <div className="mt-8 space-y-7">
-            {settingsGroups.map((group) => (
-              <div key={group.title}>
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--muted)]">
-                  {group.title}
+        <div className="space-y-5 p-6">
+          <div className="grid gap-3 md:grid-cols-3">
+            {activeContent.summary.map((item) => (
+              <div
+                key={item.label}
+                className="rounded-xl border border-[var(--border)] bg-[var(--surface-subtle)] px-4 py-3.5"
+              >
+                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--muted-strong)]">
+                  {item.label}
                 </p>
-                <div className="mt-3 space-y-2">
-                  {group.items.map((item) => {
-                    const isActive = item.id === activeTab;
-                    const Icon = item.icon;
-
-                    return (
-                      <button
-                        key={item.id}
-                        type="button"
-                        onClick={() => setActiveTab(item.id)}
-                        className={cn(
-                          "flex w-full items-start gap-3 rounded-[1.3rem] border px-4 py-3 text-left transition",
-                          isActive
-                            ? "border-red-200 bg-white shadow-[0_16px_32px_rgba(204,0,0,0.08)]"
-                            : "border-transparent bg-white/40 hover:border-[var(--border)] hover:bg-white/80",
-                        )}
-                      >
-                        <div
-                          className={cn(
-                            "mt-0.5 rounded-full p-2",
-                            isActive
-                              ? "bg-red-50 text-[var(--target-red)]"
-                              : "bg-stone-100 text-[var(--muted)]",
-                          )}
-                        >
-                          <Icon className="h-4 w-4" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center justify-between gap-3">
-                            <p className="text-sm font-semibold text-[var(--target-ink)]">
-                              {item.label}
-                            </p>
-                            <ChevronRight
-                              className={cn(
-                                "h-4 w-4 shrink-0",
-                                isActive
-                                  ? "text-[var(--target-red)]"
-                                  : "text-[var(--muted)]",
-                              )}
-                            />
-                          </div>
-                          <p className="mt-1 text-sm leading-5 text-[var(--muted)]">
-                            {item.description}
-                          </p>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
+                <p className="mt-1.5 text-base font-semibold text-[var(--target-ink)]">
+                  {item.value}
+                </p>
               </div>
             ))}
           </div>
-        </aside>
 
-        <div className="rounded-[1.8rem] border border-[var(--border)] bg-[rgba(255,255,255,0.96)] p-6 shadow-[0_16px_40px_rgba(120,54,54,0.08)]">
-          <div className="flex min-h-[760px] flex-col">
-            <div className="flex flex-col gap-4 border-b border-[var(--border)] pb-6 lg:flex-row lg:items-start lg:justify-between">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--target-red)]">
-                  {activeContent.eyebrow}
+          <div className="grid gap-4 lg:grid-cols-2">
+            {activeContent.cards.map((card) => (
+              <section
+                key={card.title}
+                className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5"
+              >
+                <h4 className="text-base font-semibold tracking-tight text-[var(--target-ink)]">
+                  {card.title}
+                </h4>
+                <p className="mt-1 text-sm leading-6 text-[var(--muted)]">
+                  {card.description}
                 </p>
-                <h3 className="mt-2 font-[family-name:var(--font-heading)] text-3xl font-semibold tracking-tight text-[var(--target-ink)]">
-                  {activeContent.title}
-                </h3>
-                <p className="mt-3 max-w-3xl text-sm leading-6 text-[var(--muted)]">
-                  {activeContent.description}
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-3">
-                <button
-                  type="button"
-                  className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-white px-4 py-2 text-sm font-semibold text-[var(--target-ink)]"
-                >
-                  <Eye className="h-4 w-4 text-[var(--target-red)]" />
-                  Preview impact
-                </button>
-                <button
-                  type="button"
-                  className="inline-flex items-center gap-2 rounded-full bg-[var(--target-red)] px-4 py-2 text-sm font-semibold text-white shadow-[0_14px_28px_rgba(204,0,0,0.18)]"
-                >
-                  <Check className="h-4 w-4" />
-                  Save changes
-                </button>
-              </div>
-            </div>
 
-            <div className="mt-6 grid gap-3 md:grid-cols-3">
-              {activeContent.summary.map((item) => (
-                <div
-                  key={item.label}
-                  className="rounded-[1.35rem] border border-[var(--border)] bg-red-50/40 px-4 py-4"
-                >
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
-                    {item.label}
-                  </p>
-                  <p className="mt-2 text-lg font-semibold text-[var(--target-ink)]">
-                    {item.value}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-6 grid gap-4 lg:grid-cols-2">
-              {activeContent.cards.map((card) => (
-                <section
-                  key={card.title}
-                  className="rounded-[1.5rem] border border-[var(--border)] bg-white p-5"
-                >
-                  <h4 className="font-[family-name:var(--font-heading)] text-xl font-semibold tracking-tight text-[var(--target-ink)]">
-                    {card.title}
-                  </h4>
-                  <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-                    {card.description}
-                  </p>
-
-                  <div className="mt-5 space-y-4">
-                    {card.rows.map((row) => (
-                      <div
-                        key={row.label}
-                        className="flex items-start justify-between gap-4 rounded-[1.2rem] border border-stone-100 bg-stone-50/70 px-4 py-4"
-                      >
-                        <div className="min-w-0">
-                          <p className="text-sm font-semibold text-[var(--target-ink)]">
-                            {row.label}
-                          </p>
-                          <p className="mt-1 text-sm leading-5 text-[var(--muted)]">
-                            {row.helper}
-                          </p>
-                        </div>
-                        {row.type === "value" ? (
-                          <span
-                            className={cn(
-                              "shrink-0 rounded-full px-3 py-2 text-sm font-semibold",
-                              row.tone === "accent"
-                                ? "bg-red-50 text-[var(--target-red)]"
-                                : "bg-white text-[var(--target-ink)]",
-                            )}
-                          >
-                            {row.value}
-                          </span>
-                        ) : (
-                          <Toggle enabled={row.enabled} />
-                        )}
+                <div className="mt-4 space-y-2">
+                  {card.rows.map((row) => (
+                    <div
+                      key={row.label}
+                      className="flex items-start justify-between gap-4 rounded-lg border border-[var(--border)] bg-[var(--surface-subtle)] px-3.5 py-3"
+                    >
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-[var(--target-ink)]">
+                          {row.label}
+                        </p>
+                        <p className="mt-0.5 text-xs leading-5 text-[var(--muted)]">
+                          {row.helper}
+                        </p>
                       </div>
-                    ))}
-                  </div>
-                </section>
-              ))}
-            </div>
-
-            <div className="mt-4 grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-              <section className="rounded-[1.5rem] border border-[var(--border)] bg-white p-5">
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--target-red)]">
-                  {activeContent.guidanceTitle}
-                </p>
-                <ul className="mt-4 space-y-3">
-                  {activeContent.guidance.map((item) => (
-                    <li key={item} className="flex gap-3 text-sm leading-6 text-[var(--target-ink)]">
-                      <span className="mt-2 h-2.5 w-2.5 rounded-full bg-[var(--target-red)]" />
-                      <span>{item}</span>
-                    </li>
+                      {row.type === "value" ? (
+                        <span
+                          className={cn(
+                            "shrink-0 rounded-md border px-2 py-1 text-xs font-medium",
+                            row.tone === "accent"
+                              ? "border-red-200 bg-[var(--target-red-soft)] text-[var(--target-red)]"
+                              : "border-[var(--border)] bg-[var(--surface)] text-[var(--target-ink)]",
+                          )}
+                        >
+                          {row.value}
+                        </span>
+                      ) : (
+                        <Toggle enabled={row.enabled} />
+                      )}
+                    </div>
                   ))}
-                </ul>
-              </section>
-
-              <section className="rounded-[1.5rem] border border-[var(--border)] bg-[var(--target-ink)] p-5 text-white">
-                <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-red-100">
-                  <Sparkles className="h-4 w-4" />
-                  AI workspace status
-                </p>
-                <p className="mt-4 font-[family-name:var(--font-heading)] text-2xl font-semibold tracking-tight">
-                  Settings are aligned for Target internal use.
-                </p>
-                <p className="mt-3 text-sm leading-6 text-red-50/90">
-                  The current configuration prioritizes fast competitor visibility, protected exports, and executive-ready summaries.
-                </p>
-                <div className="mt-5 space-y-3">
-                  <StatusPill icon={ShieldCheck} label="Protected settings enabled" />
-                  <StatusPill icon={Download} label="Exports require governed defaults" />
-                  <StatusPill icon={Bell} label="Daily digest routing configured" />
                 </div>
               </section>
-            </div>
+            ))}
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+            <section className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--target-red)]">
+                {activeContent.guidanceTitle}
+              </p>
+              <ul className="mt-3 space-y-2.5">
+                {activeContent.guidance.map((item) => (
+                  <li
+                    key={item}
+                    className="flex gap-3 text-sm leading-6 text-[var(--target-ink)]"
+                  >
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-[var(--target-red)]" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+
+            <section className="rounded-xl border border-[var(--target-ink)] bg-[var(--target-ink)] p-5 text-white">
+              <p className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-red-200">
+                <Sparkles className="h-3.5 w-3.5" />
+                AI workspace status
+              </p>
+              <p className="mt-3 text-base font-semibold tracking-tight">
+                Settings are aligned for Target internal use.
+              </p>
+              <p className="mt-1.5 text-xs leading-5 text-white/70">
+                The current configuration prioritizes fast competitor
+                visibility, protected exports, and executive-ready summaries.
+              </p>
+              <div className="mt-4 space-y-1.5">
+                <StatusPill icon={ShieldCheck} label="Protected settings enabled" />
+                <StatusPill icon={Download} label="Exports require governed defaults" />
+                <StatusPill icon={Bell} label="Daily digest routing configured" />
+              </div>
+            </section>
           </div>
         </div>
       </div>
@@ -869,31 +863,21 @@ type ToggleProps = {
 
 function Toggle({ enabled }: ToggleProps) {
   return (
-    <div className="shrink-0">
+    <span
+      role="switch"
+      aria-checked={enabled}
+      className={cn(
+        "relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition",
+        enabled ? "bg-[var(--target-red)]" : "bg-stone-300",
+      )}
+    >
       <span
         className={cn(
-          "inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold",
-          enabled
-            ? "bg-red-50 text-[var(--target-red)]"
-            : "bg-stone-200 text-stone-600",
+          "absolute h-3.5 w-3.5 rounded-full bg-white shadow-sm transition",
+          enabled ? "left-[18px]" : "left-1",
         )}
-      >
-        <span
-          className={cn(
-            "relative h-6 w-10 rounded-full transition",
-            enabled ? "bg-[var(--target-red)]" : "bg-stone-400",
-          )}
-        >
-          <span
-            className={cn(
-              "absolute top-1 h-4 w-4 rounded-full bg-white transition",
-              enabled ? "left-5" : "left-1",
-            )}
-          />
-        </span>
-        {enabled ? "On" : "Off"}
-      </span>
-    </div>
+      />
+    </span>
   );
 }
 
@@ -904,11 +888,9 @@ type StatusPillProps = {
 
 function StatusPill({ icon: Icon, label }: StatusPillProps) {
   return (
-    <div className="flex items-center gap-3 rounded-[1.1rem] border border-white/10 bg-white/10 px-4 py-3">
-      <div className="rounded-full bg-white/10 p-2 text-red-100">
-        <Icon className="h-4 w-4" />
-      </div>
-      <p className="text-sm text-white">{label}</p>
+    <div className="flex items-center gap-2.5 rounded-md border border-white/10 bg-white/5 px-3 py-2">
+      <Icon className="h-3.5 w-3.5 text-red-200" />
+      <p className="text-xs text-white">{label}</p>
     </div>
   );
 }

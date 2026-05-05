@@ -1,15 +1,24 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fffaf7;
-  --foreground: #231815;
-  --muted: #6f625d;
-  --border: rgba(35, 24, 21, 0.12);
-  --card: rgba(255, 255, 255, 0.88);
-  --card-strong: rgba(255, 255, 255, 0.96);
+  --background: #f4f5f7;
+  --surface: #ffffff;
+  --surface-subtle: #fafafb;
+  --foreground: #15171a;
+  --muted: #6b7280;
+  --muted-strong: #4b5563;
+  --border: rgba(15, 23, 42, 0.08);
+  --border-strong: rgba(15, 23, 42, 0.14);
+  --card: #ffffff;
+  --card-strong: #ffffff;
   --target-red: #cc0000;
-  --target-red-dark: #a10000;
-  --target-ink: #4b1d1d;
+  --target-red-dark: #a00000;
+  --target-red-soft: #fdecec;
+  --target-ink: #15171a;
+  --ring: rgba(204, 0, 0, 0.28);
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.06);
+  --shadow-elevated: 0 4px 6px -2px rgba(15, 23, 42, 0.04), 0 8px 24px -8px rgba(15, 23, 42, 0.08);
 }
 
 @theme inline {
@@ -29,13 +38,12 @@ html {
 
 body {
   min-height: 100vh;
-  background:
-    radial-gradient(circle at top left, rgba(204, 0, 0, 0.16), transparent 28%),
-    radial-gradient(circle at 85% 20%, rgba(255, 205, 205, 0.9), transparent 22%),
-    linear-gradient(180deg, #fff6f3 0%, #fffdfb 44%, #fff7f3 100%);
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--font-body), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 a {
@@ -45,10 +53,54 @@ a {
 
 button,
 input,
-select {
+select,
+textarea {
   font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--muted);
 }
 
 ::selection {
   background: rgba(204, 0, 0, 0.18);
+}
+
+/* Tighter, more uniform focus ring across the app. */
+:where(button, input, textarea, select, a):focus-visible {
+  outline: 2px solid var(--target-red);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* Subtle, presentable scrollbar to match the rest of the chrome. */
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.14);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(15, 23, 42, 0.24);
+  background-clip: padding-box;
+  border: 2px solid transparent;
 }

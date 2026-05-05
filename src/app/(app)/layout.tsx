@@ -12,13 +12,13 @@ export default async function InternalAppLayout({
   const session = await requireSession();
 
   return (
-    <div className="min-h-screen px-6 py-6 lg:px-8">
-      <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[300px_minmax(0,1fr)]">
+    <div className="min-h-screen bg-[var(--background)] px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mx-auto grid max-w-[1440px] gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
         <AppSidebar
           employeeId={session.user.employeeId}
           role={session.user.role}
         />
-        <main className="space-y-6">
+        <main className="min-w-0 space-y-6">
           <AppHeader session={session} />
           {children}
         </main>
