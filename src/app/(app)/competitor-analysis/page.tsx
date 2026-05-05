@@ -1,5 +1,3 @@
-import type { CSSProperties } from "react";
-
 import {
   Bot,
   Boxes,
@@ -34,12 +32,6 @@ const salesSeries = {
 const sentimentSeries = {
   target: [4.2, 4.3, 4.4, 4.5, 4.6, 4.7],
   competitor: [4.0, 4.0, 4.1, 4.1, 4.2, 4.2],
-};
-
-const surfaceGridStyle: CSSProperties = {
-  backgroundImage:
-    "linear-gradient(to right, rgba(75, 29, 29, 0.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(75, 29, 29, 0.06) 1px, transparent 1px)",
-  backgroundSize: "28px 28px",
 };
 
 const pricePoints = getLinePoints({
@@ -86,12 +78,9 @@ const storeCards = [
   {
     name: "Target Corporation",
     tag: "Owned portfolio",
-    tagClassName: "bg-red-50 text-[var(--target-red)]",
-    dotClassName: "bg-[var(--target-red)]",
-    barClassName: "bg-[var(--target-red)]",
+    accent: "var(--target-red)",
     summary:
       "Higher inventory consistency and stronger promo conversion are keeping core household baskets competitive.",
-    graphs: ["Pricing graph", "Stock graph", "Sales graph"],
     metrics: [
       { label: "Price index", value: "97 / 100", score: 79 },
       { label: "In-stock rate", value: "96%", score: 96 },
@@ -103,12 +92,9 @@ const storeCards = [
   {
     name: "Walmart",
     tag: "Benchmark store",
-    tagClassName: "bg-stone-100 text-stone-700",
-    dotClassName: "bg-stone-700",
-    barClassName: "bg-stone-700",
+    accent: "#3a3f4a",
     summary:
       "Aggressive opening-price posture is helping traffic, but stock interruptions are limiting conversion on multi-pack items.",
-    graphs: ["Pricing graph", "Stock graph", "Sales graph"],
     metrics: [
       { label: "Price index", value: "94 / 100", score: 74 },
       { label: "In-stock rate", value: "85%", score: 85 },
@@ -143,109 +129,104 @@ export default async function CompetitorAnalysisPage() {
   const categoryLabel = products[0]?.primaryCategory ?? "Household essentials";
 
   return (
-    <section className="space-y-6">
-      <div className="rounded-[1.9rem] border border-[var(--border)] bg-[var(--card-strong)] px-6 py-5 shadow-[0_24px_70px_rgba(120,54,54,0.08)] backdrop-blur">
+    <section className="space-y-5">
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-6 py-5 shadow-[var(--shadow-card)]">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--target-red)]">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-md bg-[var(--target-red-soft)] px-2 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--target-red)]">
               <Sparkles className="h-3.5 w-3.5" />
               AI competitor analysis
             </span>
-            <span className="rounded-full border border-[var(--border)] bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
+            <span className="rounded-md border border-[var(--border)] bg-[var(--surface-subtle)] px-2 py-1 text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--muted-strong)]">
               {categoryLabel}
             </span>
           </div>
-          <div className="text-center">
-            <h2 className="font-[family-name:var(--font-heading)] text-3xl font-semibold tracking-tight text-[var(--target-ink)]">
+          <div>
+            <h2 className="font-[family-name:var(--font-heading)] text-2xl font-semibold tracking-tight text-[var(--target-ink)]">
               Target Corporation vs Walmart
             </h2>
             <p className="mt-1 text-sm text-[var(--muted)]">
-              Pricing, stock, and sales benchmarks across high-volume weekly products.
+              Pricing, stock, and sales benchmarks across high-volume weekly
+              products.
             </p>
           </div>
-          <div className="flex flex-wrap justify-end gap-3">
+          <div className="flex flex-wrap gap-2">
             <MetricPill
               icon={CircleDollarSign}
               label="Price gap"
               value={`${averagePriceGap}%`}
             />
-            <MetricPill icon={TrendingUp} label="Rows compared" value={formatNumber(products.length)} />
+            <MetricPill
+              icon={TrendingUp}
+              label="Rows compared"
+              value={formatNumber(products.length)}
+            />
           </div>
         </div>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[290px_minmax(0,1fr)]">
-        <aside className="space-y-6">
+      <div className="grid gap-4 xl:grid-cols-[290px_minmax(0,1fr)]">
+        <aside className="space-y-4">
           {storeCards.map((card) => (
             <article
               key={card.name}
-              className="rounded-[1.8rem] border border-[var(--border)] bg-[var(--card-strong)] p-5 shadow-[0_24px_70px_rgba(120,54,54,0.08)] backdrop-blur"
+              className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-card)]"
             >
               <div className="flex items-start justify-between gap-3">
-                <div>
+                <div className="min-w-0">
                   <span
-                    className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] ${card.tagClassName}`}
+                    className="inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[11px] font-medium uppercase tracking-[0.12em]"
+                    style={{
+                      backgroundColor: card.accent === "var(--target-red)" ? "var(--target-red-soft)" : "rgba(58, 63, 74, 0.08)",
+                      color: card.accent,
+                    }}
                   >
                     <span
-                      className={`h-2.5 w-2.5 rounded-full ${card.dotClassName}`}
+                      className="h-1.5 w-1.5 rounded-full"
+                      style={{ backgroundColor: card.accent }}
                     />
                     {card.tag}
                   </span>
-                  <h3 className="mt-4 font-[family-name:var(--font-heading)] text-2xl font-semibold tracking-tight text-[var(--target-ink)]">
+                  <h3 className="mt-3 font-[family-name:var(--font-heading)] text-lg font-semibold tracking-tight text-[var(--target-ink)]">
                     {card.name}
                   </h3>
-                  <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
+                  <p className="mt-1.5 text-xs leading-5 text-[var(--muted)]">
                     {card.summary}
                   </p>
                 </div>
-                <Store className="h-6 w-6 shrink-0 text-[var(--muted)]" />
+                <Store className="h-5 w-5 shrink-0 text-[var(--muted)]" />
               </div>
 
-              <div className="mt-6">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--muted)]">
-                  Graph focus
-                </p>
-                <ul className="mt-3 space-y-2 text-base text-[var(--target-ink)]">
-                  {card.graphs.map((graph) => (
-                    <li key={graph} className="flex items-center gap-3">
-                      <span
-                        className={`h-2 w-2 rounded-full ${card.dotClassName}`}
-                      />
-                      <span>{graph}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div className="mt-6 rounded-[1.4rem] border border-[var(--border)] bg-white/80 p-4">
-                <div className="space-y-4">
-                  {card.metrics.map((metric) => (
-                    <div key={metric.label} className="space-y-2">
-                      <div className="flex items-center justify-between gap-3">
-                        <p className="text-sm font-semibold text-[var(--target-ink)]">
-                          {metric.label}
-                        </p>
-                        <p className="text-sm text-[var(--muted)]">
-                          {metric.value}
-                        </p>
-                      </div>
-                      <div className="h-2.5 rounded-full bg-stone-100">
-                        <div
-                          className={`h-full rounded-full ${card.barClassName}`}
-                          style={{ width: `${metric.score}%` }}
-                        />
-                      </div>
+              <div className="mt-4 space-y-3">
+                {card.metrics.map((metric) => (
+                  <div key={metric.label} className="space-y-1">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-xs font-medium text-[var(--target-ink)]">
+                        {metric.label}
+                      </p>
+                      <p className="text-xs font-semibold text-[var(--target-ink)]">
+                        {metric.value}
+                      </p>
                     </div>
-                  ))}
-                </div>
+                    <div className="h-1.5 rounded-full bg-[var(--surface-subtle)]">
+                      <div
+                        className="h-full rounded-full"
+                        style={{
+                          width: `${metric.score}%`,
+                          backgroundColor: card.accent,
+                        }}
+                      />
+                    </div>
+                  </div>
+                ))}
               </div>
 
-              <div className="mt-5 rounded-[1.4rem] border border-red-100 bg-red-50/70 p-4">
-                <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--target-red)]">
-                  <Bot className="h-3.5 w-3.5" />
+              <div className="mt-4 rounded-lg border border-[var(--border)] bg-[var(--surface-subtle)] p-3">
+                <p className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--target-red)]">
+                  <Bot className="h-3 w-3" />
                   AI note
                 </p>
-                <p className="mt-2 text-sm leading-6 text-[var(--target-ink)]">
+                <p className="mt-1.5 text-xs leading-5 text-[var(--muted-strong)]">
                   {card.note}
                 </p>
               </div>
@@ -253,35 +234,33 @@ export default async function CompetitorAnalysisPage() {
           ))}
         </aside>
 
-        <div className="space-y-6">
-          <article className="rounded-[1.9rem] border border-[var(--border)] bg-[var(--card-strong)] p-6 shadow-[0_24px_70px_rgba(120,54,54,0.08)] backdrop-blur">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="space-y-4">
+          <article className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-card)]">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--target-red)]">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--target-red)]">
                   Pricing and stock
                 </p>
-                <h3 className="mt-2 font-[family-name:var(--font-heading)] text-2xl font-semibold tracking-tight text-[var(--target-ink)]">
+                <h3 className="mt-0.5 font-[family-name:var(--font-heading)] text-lg font-semibold tracking-tight text-[var(--target-ink)]">
                   Competitive pressure across core household SKUs
                 </h3>
-                <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--muted)]">
-                  The top plot tracks relative price movement while the lower band shows in-stock stability. The AI callout surfaces the strongest operational difference between both retailers.
+                <p className="mt-1 max-w-3xl text-sm leading-6 text-[var(--muted)]">
+                  Top plot tracks relative price movement; bottom band shows
+                  in-stock stability.
                 </p>
               </div>
-              <div className="flex flex-wrap gap-2 text-sm">
-                <LegendPill className="bg-red-50 text-[var(--target-red)]" label="Target price" />
-                <LegendPill className="bg-stone-100 text-stone-700" label="Walmart price" />
-                <LegendPill className="bg-red-100/70 text-[var(--target-red)]" label="Target stock" />
-                <LegendPill className="bg-stone-200 text-stone-700" label="Walmart stock" />
+              <div className="flex flex-wrap gap-2">
+                <LegendPill swatch="var(--target-red)" label="Target price" />
+                <LegendPill swatch="#3a3f4a" label="Walmart price" />
+                <LegendPill swatch="var(--target-red)" outline label="Target stock" />
+                <LegendPill swatch="#3a3f4a" outline label="Walmart stock" />
               </div>
             </div>
 
-            <div
-              className="relative mt-6 overflow-hidden rounded-[1.8rem] border border-[var(--border)] bg-white"
-              style={surfaceGridStyle}
-            >
+            <div className="relative mt-5 overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--surface-subtle)]">
               <svg
                 viewBox="0 0 720 340"
-                className="relative z-10 h-[360px] w-full"
+                className="h-[340px] w-full"
                 aria-label="Price and stock comparison chart"
                 role="img"
               >
@@ -292,45 +271,51 @@ export default async function CompetitorAnalysisPage() {
                     x2="652"
                     y1={52 + index * 56}
                     y2={52 + index * 56}
-                    stroke="rgba(75, 29, 29, 0.12)"
-                    strokeDasharray="4 8"
+                    stroke="rgba(15, 23, 42, 0.06)"
                   />
                 ))}
 
-                <text x="24" y="58" fill="rgba(111, 98, 93, 1)" fontSize="12">
+                <text x="24" y="58" fill="rgba(107, 114, 128, 1)" fontSize="11">
                   Price
                 </text>
-                <text x="18" y="234" fill="rgba(111, 98, 93, 1)" fontSize="12">
+                <text x="18" y="234" fill="rgba(107, 114, 128, 1)" fontSize="11">
                   Stock
                 </text>
 
                 {comparisonPeriods.map((period, index) => {
                   const x = 68 + index * ((652 - 68) / (comparisonPeriods.length - 1));
                   const targetHeight =
-                    24 +
-                    ((stockSeries.target[index] - 80) / (96 - 80)) * 72;
+                    24 + ((stockSeries.target[index] - 80) / (96 - 80)) * 72;
                   const competitorHeight =
-                    24 +
-                    ((stockSeries.competitor[index] - 80) / (96 - 80)) * 72;
+                    24 + ((stockSeries.competitor[index] - 80) / (96 - 80)) * 72;
 
                   return (
                     <g key={period}>
                       <rect
                         x={x - 26}
                         y={294 - targetHeight}
-                        width="16"
+                        width="14"
                         height={targetHeight}
-                        rx="8"
-                        fill="rgba(204, 0, 0, 0.18)"
+                        rx="4"
+                        fill="rgba(204, 0, 0, 0.7)"
                       />
                       <rect
                         x={x - 4}
                         y={294 - competitorHeight}
-                        width="16"
+                        width="14"
                         height={competitorHeight}
-                        rx="8"
-                        fill="rgba(68, 64, 60, 0.18)"
+                        rx="4"
+                        fill="rgba(58, 63, 74, 0.55)"
                       />
+                      <text
+                        x={x}
+                        y="312"
+                        textAnchor="middle"
+                        fill="rgba(107, 114, 128, 1)"
+                        fontSize="10"
+                      >
+                        {period}
+                      </text>
                     </g>
                   );
                 })}
@@ -338,16 +323,16 @@ export default async function CompetitorAnalysisPage() {
                 <path
                   d={toPath(pricePoints)}
                   fill="none"
-                  stroke="rgba(204, 0, 0, 1)"
-                  strokeWidth="4"
+                  stroke="#cc0000"
+                  strokeWidth="2.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 />
                 <path
                   d={toPath(competitorPricePoints)}
                   fill="none"
-                  stroke="rgba(68, 64, 60, 0.85)"
-                  strokeWidth="4"
+                  stroke="#3a3f4a"
+                  strokeWidth="2.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 />
@@ -357,10 +342,10 @@ export default async function CompetitorAnalysisPage() {
                     key={`target-price-${comparisonPeriods[index]}`}
                     cx={point.x}
                     cy={point.y}
-                    r="4.5"
+                    r="3.5"
                     fill="white"
-                    stroke="rgba(204, 0, 0, 1)"
-                    strokeWidth="3"
+                    stroke="#cc0000"
+                    strokeWidth="2"
                   />
                 ))}
                 {competitorPricePoints.map((point, index) => (
@@ -368,25 +353,27 @@ export default async function CompetitorAnalysisPage() {
                     key={`competitor-price-${comparisonPeriods[index]}`}
                     cx={point.x}
                     cy={point.y}
-                    r="4.5"
+                    r="3.5"
                     fill="white"
-                    stroke="rgba(68, 64, 60, 0.85)"
-                    strokeWidth="3"
+                    stroke="#3a3f4a"
+                    strokeWidth="2"
                   />
                 ))}
               </svg>
+            </div>
 
-              <div className="pointer-events-none absolute left-1/2 top-1/2 z-20 w-[260px] max-w-[72%] -translate-x-1/2 -translate-y-1/2 rounded-[1.4rem] border border-[var(--border)] bg-[rgba(255,255,255,0.94)] px-5 py-4 text-center shadow-[0_24px_50px_rgba(35,24,21,0.12)] backdrop-blur">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--target-red)]">
-                  AI readout
-                </p>
-                <p className="mt-2 font-[family-name:var(--font-heading)] text-xl font-semibold tracking-tight text-[var(--target-ink)]">
-                  Target holds the stronger availability edge.
-                </p>
-                <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-                  Walmart is cheaper on opening-price items, but Target sustains a 9-point in-stock advantage across the tracked basket.
-                </p>
-              </div>
+            <div className="mt-4 rounded-lg border border-[var(--border)] bg-[var(--target-red-soft)] p-4">
+              <p className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--target-red)]">
+                <Sparkles className="h-3 w-3" />
+                AI readout
+              </p>
+              <p className="mt-1.5 text-sm font-semibold text-[var(--target-ink)]">
+                Target holds the stronger availability edge.
+              </p>
+              <p className="mt-1 text-xs leading-5 text-[var(--muted-strong)]">
+                Walmart is cheaper on opening-price items, but Target sustains a
+                9-point in-stock advantage across the tracked basket.
+              </p>
             </div>
 
             <div className="mt-4 grid gap-3 sm:grid-cols-3">
@@ -396,34 +383,32 @@ export default async function CompetitorAnalysisPage() {
             </div>
           </article>
 
-          <article className="rounded-[1.9rem] border border-[var(--border)] bg-[var(--card-strong)] p-6 shadow-[0_24px_70px_rgba(120,54,54,0.08)] backdrop-blur">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <article className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-card)]">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--target-red)]">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--target-red)]">
                   Sales and sentiment
                 </p>
-                <h3 className="mt-2 font-[family-name:var(--font-heading)] text-2xl font-semibold tracking-tight text-[var(--target-ink)]">
+                <h3 className="mt-0.5 font-[family-name:var(--font-heading)] text-lg font-semibold tracking-tight text-[var(--target-ink)]">
                   Sales momentum paired with customer perception
                 </h3>
-                <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--muted)]">
-                  Grouped bars show relative unit velocity by month. Dashed lines trace review sentiment to show how conversion and customer feedback are moving together.
+                <p className="mt-1 max-w-3xl text-sm leading-6 text-[var(--muted)]">
+                  Bars compare unit velocity by month; dashed lines trace review
+                  sentiment.
                 </p>
               </div>
-              <div className="flex flex-wrap gap-2 text-sm">
-                <LegendPill className="bg-red-50 text-[var(--target-red)]" label="Target sales" />
-                <LegendPill className="bg-stone-100 text-stone-700" label="Walmart sales" />
-                <LegendPill className="border border-red-200 bg-white text-[var(--target-red)]" label="Target sentiment" />
-                <LegendPill className="border border-stone-300 bg-white text-stone-700" label="Walmart sentiment" />
+              <div className="flex flex-wrap gap-2">
+                <LegendPill swatch="var(--target-red)" label="Target sales" />
+                <LegendPill swatch="#3a3f4a" label="Walmart sales" />
+                <LegendPill swatch="var(--target-red)" dashed label="Target sentiment" />
+                <LegendPill swatch="#3a3f4a" dashed label="Walmart sentiment" />
               </div>
             </div>
 
-            <div
-              className="relative mt-6 overflow-hidden rounded-[1.8rem] border border-[var(--border)] bg-white"
-              style={surfaceGridStyle}
-            >
+            <div className="relative mt-5 overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--surface-subtle)]">
               <svg
                 viewBox="0 0 720 340"
-                className="relative z-10 h-[360px] w-full"
+                className="h-[340px] w-full"
                 aria-label="Sales and sentiment comparison chart"
                 role="img"
               >
@@ -434,45 +419,51 @@ export default async function CompetitorAnalysisPage() {
                     x2="652"
                     y1={56 + index * 54}
                     y2={56 + index * 54}
-                    stroke="rgba(75, 29, 29, 0.12)"
-                    strokeDasharray="4 8"
+                    stroke="rgba(15, 23, 42, 0.06)"
                   />
                 ))}
 
-                <text x="18" y="58" fill="rgba(111, 98, 93, 1)" fontSize="12">
+                <text x="18" y="58" fill="rgba(107, 114, 128, 1)" fontSize="11">
                   Rating
                 </text>
-                <text x="24" y="236" fill="rgba(111, 98, 93, 1)" fontSize="12">
+                <text x="24" y="236" fill="rgba(107, 114, 128, 1)" fontSize="11">
                   Sales
                 </text>
 
                 {comparisonPeriods.map((period, index) => {
                   const x = 68 + index * ((652 - 68) / (comparisonPeriods.length - 1));
                   const targetHeight =
-                    40 +
-                    ((salesSeries.target[index] - 68) / (90 - 68)) * 96;
+                    40 + ((salesSeries.target[index] - 68) / (90 - 68)) * 96;
                   const competitorHeight =
-                    34 +
-                    ((salesSeries.competitor[index] - 68) / (90 - 68)) * 90;
+                    34 + ((salesSeries.competitor[index] - 68) / (90 - 68)) * 90;
 
                   return (
                     <g key={period}>
                       <rect
                         x={x - 28}
                         y={302 - targetHeight}
-                        width="18"
+                        width="16"
                         height={targetHeight}
-                        rx="9"
-                        fill="rgba(204, 0, 0, 0.72)"
+                        rx="4"
+                        fill="rgba(204, 0, 0, 0.85)"
                       />
                       <rect
                         x={x - 4}
                         y={302 - competitorHeight}
-                        width="18"
+                        width="16"
                         height={competitorHeight}
-                        rx="9"
-                        fill="rgba(68, 64, 60, 0.56)"
+                        rx="4"
+                        fill="rgba(58, 63, 74, 0.7)"
                       />
+                      <text
+                        x={x}
+                        y="318"
+                        textAnchor="middle"
+                        fill="rgba(107, 114, 128, 1)"
+                        fontSize="10"
+                      >
+                        {period}
+                      </text>
                     </g>
                   );
                 })}
@@ -480,18 +471,18 @@ export default async function CompetitorAnalysisPage() {
                 <path
                   d={toPath(sentimentTargetPoints)}
                   fill="none"
-                  stroke="rgba(204, 0, 0, 1)"
-                  strokeWidth="3"
-                  strokeDasharray="8 8"
+                  stroke="#cc0000"
+                  strokeWidth="2"
+                  strokeDasharray="6 6"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 />
                 <path
                   d={toPath(sentimentCompetitorPoints)}
                   fill="none"
-                  stroke="rgba(68, 64, 60, 0.85)"
-                  strokeWidth="3"
-                  strokeDasharray="8 8"
+                  stroke="#3a3f4a"
+                  strokeWidth="2"
+                  strokeDasharray="6 6"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 />
@@ -501,10 +492,10 @@ export default async function CompetitorAnalysisPage() {
                     key={`target-sentiment-${comparisonPeriods[index]}`}
                     cx={point.x}
                     cy={point.y}
-                    r="4"
+                    r="3"
                     fill="white"
-                    stroke="rgba(204, 0, 0, 1)"
-                    strokeWidth="2.5"
+                    stroke="#cc0000"
+                    strokeWidth="2"
                   />
                 ))}
                 {sentimentCompetitorPoints.map((point, index) => (
@@ -512,30 +503,37 @@ export default async function CompetitorAnalysisPage() {
                     key={`competitor-sentiment-${comparisonPeriods[index]}`}
                     cx={point.x}
                     cy={point.y}
-                    r="4"
+                    r="3"
                     fill="white"
-                    stroke="rgba(68, 64, 60, 0.85)"
-                    strokeWidth="2.5"
+                    stroke="#3a3f4a"
+                    strokeWidth="2"
                   />
                 ))}
               </svg>
+            </div>
 
-              <div className="pointer-events-none absolute left-1/2 top-1/2 z-20 w-[260px] max-w-[72%] -translate-x-1/2 -translate-y-1/2 rounded-[1.4rem] border border-[var(--border)] bg-[rgba(255,255,255,0.94)] px-5 py-4 text-center shadow-[0_24px_50px_rgba(35,24,21,0.12)] backdrop-blur">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--target-red)]">
-                  AI readout
-                </p>
-                <p className="mt-2 font-[family-name:var(--font-heading)] text-xl font-semibold tracking-tight text-[var(--target-ink)]">
-                  Target is gaining share without a sentiment drop.
-                </p>
-                <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-                  Sales velocity keeps rising while ratings improve, which suggests pricing pressure is being absorbed by a better on-shelf experience.
-                </p>
-              </div>
+            <div className="mt-4 rounded-lg border border-[var(--border)] bg-[var(--target-red-soft)] p-4">
+              <p className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--target-red)]">
+                <Sparkles className="h-3 w-3" />
+                AI readout
+              </p>
+              <p className="mt-1.5 text-sm font-semibold text-[var(--target-ink)]">
+                Target is gaining share without a sentiment drop.
+              </p>
+              <p className="mt-1 text-xs leading-5 text-[var(--muted-strong)]">
+                Sales velocity keeps rising while ratings improve, suggesting
+                pricing pressure is being absorbed by a better on-shelf
+                experience.
+              </p>
             </div>
 
             <div className="mt-4 grid gap-3 sm:grid-cols-3">
               <SummaryCard icon={ChartColumnIncreasing} label="Sales delta" value="+12.4%" />
-              <SummaryCard icon={MessageSquareText} label="Sentiment edge" value={`+${Math.max(0.1, averageRating - 4).toFixed(1)} stars`} />
+              <SummaryCard
+                icon={MessageSquareText}
+                label="Sentiment edge"
+                value={`+${Math.max(0.1, averageRating - 4).toFixed(1)} stars`}
+              />
               <SummaryCard icon={Sparkles} label="AI confidence" value="94%" />
             </div>
           </article>
@@ -553,22 +551,32 @@ type MetricPillProps = {
 
 function MetricPill({ icon: Icon, label, value }: MetricPillProps) {
   return (
-    <div className="inline-flex items-center gap-3 rounded-full border border-[var(--border)] bg-white px-4 py-2 text-sm text-[var(--target-ink)]">
-      <Icon className="h-4 w-4 text-[var(--target-red)]" />
-      <span className="font-semibold">{label}</span>
-      <span className="text-[var(--muted)]">{value}</span>
+    <div className="inline-flex items-center gap-2 rounded-md border border-[var(--border)] bg-[var(--surface-subtle)] px-3 py-1.5 text-xs">
+      <Icon className="h-3.5 w-3.5 text-[var(--target-red)]" />
+      <span className="font-semibold text-[var(--target-ink)]">{label}</span>
+      <span className="text-[var(--muted-strong)]">{value}</span>
     </div>
   );
 }
 
 type LegendPillProps = {
-  className: string;
+  swatch: string;
   label: string;
+  outline?: boolean;
+  dashed?: boolean;
 };
 
-function LegendPill({ className, label }: LegendPillProps) {
+function LegendPill({ swatch, label, outline, dashed }: LegendPillProps) {
   return (
-    <span className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] ${className}`}>
+    <span className="inline-flex items-center gap-1.5 rounded-md border border-[var(--border)] bg-[var(--surface)] px-2 py-1 text-[11px] font-medium text-[var(--muted-strong)]">
+      <span
+        className="h-1.5 w-3 rounded-sm"
+        style={{
+          backgroundColor: outline || dashed ? "transparent" : swatch,
+          border: outline ? `1.5px solid ${swatch}` : undefined,
+          borderTop: dashed ? `2px dashed ${swatch}` : undefined,
+        }}
+      />
       {label}
     </span>
   );
@@ -582,18 +590,16 @@ type SummaryCardProps = {
 
 function SummaryCard({ icon: Icon, label, value }: SummaryCardProps) {
   return (
-    <div className="rounded-[1.35rem] border border-[var(--border)] bg-white px-4 py-4">
-      <div className="flex items-center gap-3">
-        <div className="rounded-full bg-red-50 p-2 text-[var(--target-red)]">
-          <Icon className="h-4 w-4" />
-        </div>
+    <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-subtle)] px-3 py-3">
+      <div className="flex items-center gap-2.5">
+        <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[var(--surface)] text-[var(--target-red)]">
+          <Icon className="h-3.5 w-3.5" />
+        </span>
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--muted-strong)]">
             {label}
           </p>
-          <p className="mt-1 text-lg font-semibold text-[var(--target-ink)]">
-            {value}
-          </p>
+          <p className="text-base font-semibold text-[var(--target-ink)]">{value}</p>
         </div>
       </div>
     </div>

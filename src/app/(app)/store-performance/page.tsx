@@ -1,10 +1,9 @@
 import {
-  ChevronRight,
+  ArrowUpRight,
   Clock3,
-  LayoutGrid,
-  Search,
   ShoppingBag,
   Users,
+  type LucideIcon,
 } from "lucide-react";
 
 import { deriveProductSignals, formatCurrency, formatNumber, listDemoProducts } from "@/lib/demo-data";
@@ -36,21 +35,24 @@ function buildMetricCards(products: Awaited<ReturnType<typeof listDemoProducts>>
       value: formatCurrency(revenue),
       detail: "Calculated from seeded price and sales velocity signals",
       icon: ShoppingBag,
+      delta: "+12.4%",
       featured: true,
     },
     {
-      title: "Number of Customers",
+      title: "Customers",
       subtitle: "Demo traffic",
       value: formatNumber(customers),
-      detail: "Estimated shoppers served by tracked seeded products",
+      detail: "Estimated shoppers served by tracked products",
       icon: Users,
+      delta: "+5.8%",
     },
     {
-      title: "Refunds/Loss",
+      title: "Refunds / loss",
       subtitle: "Storewide",
-      value: `#${formatNumber(returns)}`,
+      value: formatNumber(returns),
       detail: "Derived from sales velocity and return-rate signals",
       icon: Clock3,
+      delta: "-1.2%",
     },
   ];
 }
@@ -66,10 +68,12 @@ const chartRows = [
   { sales: 68, traffic: 56, returns: 38 },
 ];
 
+const chartLabels = ["W1", "W2", "W3", "W4", "W5", "W6", "W7", "W8"];
+
 function TrendChart() {
   const width = 620;
   const height = 260;
-  const pad = 24;
+  const pad = 28;
   const step = (width - pad * 2) / (chartRows.length - 1);
 
   const line = (values: number[]) =>
@@ -98,37 +102,56 @@ function TrendChart() {
             y1={y}
             x2={width - pad}
             y2={y}
-            stroke="rgba(38, 38, 43, 0.12)"
+            stroke="rgba(15, 23, 42, 0.06)"
             strokeWidth="1"
           />
+        );
+      })}
+      {chartLabels.map((label, index) => {
+        const x = pad + index * step;
+        return (
+          <text
+            key={label}
+            x={x}
+            y={height - 6}
+            textAnchor="middle"
+            fontSize="10"
+            fill="rgba(107, 114, 128, 1)"
+          >
+            {label}
+          </text>
         );
       })}
       <path
         d={line(chartRows.map((row) => row.traffic))}
         fill="none"
-        stroke="#d8cabd"
-        strokeWidth="3"
+        stroke="rgba(107, 114, 128, 0.55)"
+        strokeWidth="2"
         strokeLinecap="round"
+        strokeDasharray="4 4"
       />
       <path
         d={line(chartRows.map((row) => row.returns))}
         fill="none"
-        stroke="#ebbc97"
-        strokeWidth="3"
+        stroke="rgba(245, 158, 11, 0.7)"
+        strokeWidth="2"
         strokeLinecap="round"
+        strokeDasharray="4 4"
       />
       <path
         d={line(chartRows.map((row) => row.sales))}
         fill="none"
-        stroke="#232429"
-        strokeWidth="3.5"
+        stroke="#cc0000"
+        strokeWidth="2.5"
         strokeLinecap="round"
       />
       {chartRows.map((row, index) => {
         const x = pad + index * step;
         const y = height - pad - (row.sales / 80) * (height - pad * 2);
 
-        return <circle key={index} cx={x} cy={y} r="4.5" fill="#232429" />;
+        return (
+          <circle key={index} cx={x} cy={y} r="3.5" fill="white" stroke="#cc0000" strokeWidth="2" />
+        );
       })}
     </svg>
   );
@@ -140,145 +163,190 @@ export default async function StorePerformancePage() {
   const topProducts = products
     .map((product) => ({ product, signals: deriveProductSignals(product) }))
     .sort((left, right) => right.signals.weeklySales - left.signals.weeklySales)
-    .slice(0, 3);
+    .slice(0, 4);
 
   return (
-    <section className="rounded-[2rem] bg-[#f5f3ee] p-3 text-[#232429] shadow-[0_24px_70px_rgba(35,36,41,0.08)] sm:p-6">
-      <div className="grid overflow-hidden rounded-[2rem] bg-[#f0ede7] shadow-[0_30px_80px_rgba(35,36,41,0.08)] xl:grid-cols-[220px_minmax(0,1fr)]">
-        <aside className="flex min-h-full flex-col bg-[#1f2024] px-8 py-9 text-white">
-          <div className="text-lg font-semibold">Target</div>
-          <nav className="mt-12 space-y-3 text-sm">
-            <div className="flex items-center gap-3 rounded-xl bg-white px-4 py-3 font-semibold text-[#1f2024]">
-              <LayoutGrid className="h-4 w-4" />
-              <span>Overview</span>
-            </div>
-            <div className="px-4 py-2 text-white/45">Products</div>
-            <div className="px-4 py-2 text-white/45">Orders</div>
-            <div className="px-4 py-2 text-white/45">Customers</div>
-          </nav>
-          <div className="mt-auto border-t border-white/10 pt-8 text-white/30">
-            Store analytics
+    <section className="space-y-5">
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-card)]">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--target-red)]">
+          Store performance
+        </p>
+        <div className="mt-2 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <h2 className="font-[family-name:var(--font-heading)] text-2xl font-semibold tracking-tight text-[var(--target-ink)]">
+              Target sales statistics
+            </h2>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--muted)]">
+              Storewide revenue, traffic, and returns derived from seeded
+              product signals. Toggle range and segment filters when the live
+              POS feed comes online.
+            </p>
           </div>
-        </aside>
-
-        <div className="space-y-6 bg-[#f7f5f1] px-4 py-6 sm:px-6 lg:px-8">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <p className="text-sm text-[#7a7b80]">Target Sales Statistics</p>
-            <div className="flex h-11 items-center gap-3 rounded-full bg-white px-4 text-sm text-[#9a9ca1] shadow-[0_12px_24px_rgba(35,36,41,0.04)]">
-              <Search className="h-4 w-4" />
-              <span>Search</span>
-            </div>
-          </div>
-
-          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_150px]">
-            <div className="grid gap-4 md:grid-cols-3">
-              {metricCards.map((card) => {
-                const Icon = card.icon;
-
-                return (
-                  <article
-                    key={card.title}
-                    className={[
-                      "rounded-[1.75rem] px-5 py-5 shadow-[0_18px_40px_rgba(35,36,41,0.05)]",
-                      card.featured
-                        ? "bg-[#232429] text-white"
-                        : "bg-white text-[#232429]",
-                    ].join(" ")}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="space-y-3">
-                        <div
-                          className={[
-                            "inline-flex h-10 w-10 items-center justify-center rounded-2xl",
-                            card.featured ? "bg-white/10" : "bg-[#f3f1ec]",
-                          ].join(" ")}
-                        >
-                          <Icon className="h-4 w-4" />
-                        </div>
-                        <div>
-                          <p className="text-base font-semibold">
-                            {card.title}
-                          </p>
-                          <p
-                            className={
-                              card.featured
-                                ? "text-sm text-white/55"
-                                : "text-sm text-[#8a8b8f]"
-                            }
-                          >
-                            {card.subtitle}
-                          </p>
-                        </div>
-                      </div>
-                      <ChevronRight
-                        className={
-                          card.featured
-                            ? "h-4 w-4 text-white/65"
-                            : "h-4 w-4 text-[#8a8b8f]"
-                        }
-                      />
-                    </div>
-                    <div className="mt-8">
-                      <p className="text-3xl font-semibold tracking-tight">
-                        {card.value}
-                      </p>
-                      <p
-                        className={
-                          card.featured
-                            ? "mt-3 text-sm text-white/75"
-                            : "mt-3 text-sm text-[#75767b]"
-                        }
-                      >
-                        {card.detail}
-                      </p>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-
-            <div className="hidden xl:block" />
-          </div>
-
-          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_220px]">
-            <section className="rounded-[2rem] bg-white p-5 shadow-[0_18px_40px_rgba(35,36,41,0.05)] sm:p-6">
-              <h2 className="text-xl font-semibold">Sales Performance</h2>
-              <div className="mt-5 h-[320px] rounded-[1.4rem] bg-[linear-gradient(180deg,#faf8f4_0%,#f7f3ee_100%)] p-4">
-                <TrendChart />
-              </div>
-            </section>
-
-            <aside className="rounded-[2rem] bg-white p-5 shadow-[0_18px_40px_rgba(35,36,41,0.05)] sm:p-6">
-              <h2 className="text-xl font-semibold">Top Products</h2>
-              <ul className="mt-8 space-y-4 text-sm font-semibold">
-                {topProducts.map(({ product, signals }, index) => (
-                  <li key={product.productId} className="flex items-start gap-3">
-                    <span
-                      className={[
-                        "mt-1 h-3 w-3 shrink-0 rounded-sm",
-                        index === 0
-                          ? "bg-[#2b2c31]"
-                          : index === 1
-                            ? "bg-[#8f9095]"
-                            : "bg-[#e3e4e8]",
-                      ].join(" ")}
-                    />
-                    <span>
-                      <span className="line-clamp-2">{product.title}</span>
-                      <span className="mt-1 block text-xs font-normal text-[#7a7b80]">
-                        {signals.weeklySales} weekly units
-                      </span>
-                    </span>
-                  </li>
-                ))}
-              </ul>
-              <div className="mt-24 flex justify-end text-[#2b2c31]">
-                <ChevronRight className="h-5 w-5" />
-              </div>
-            </aside>
+          <div className="inline-flex rounded-lg border border-[var(--border)] bg-[var(--surface-subtle)] p-1 text-xs font-medium text-[var(--muted-strong)]">
+            {["7d", "30d", "Quarter", "YTD"].map((range, index) => (
+              <button
+                key={range}
+                type="button"
+                className={
+                  index === 1
+                    ? "rounded-md bg-[var(--surface)] px-3 py-1.5 text-[var(--target-ink)] shadow-[var(--shadow-sm)]"
+                    : "rounded-md px-3 py-1.5 hover:text-[var(--target-ink)]"
+                }
+              >
+                {range}
+              </button>
+            ))}
           </div>
         </div>
       </div>
+
+      <div className="grid gap-3 md:grid-cols-3">
+        {metricCards.map((card) => {
+          const Icon = card.icon;
+          const isPositive = card.delta.startsWith("+");
+
+          return (
+            <article
+              key={card.title}
+              className={
+                card.featured
+                  ? "rounded-xl border border-[var(--target-ink)] bg-[var(--target-ink)] p-5 text-white"
+                  : "rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-sm)]"
+              }
+            >
+              <div className="flex items-start justify-between gap-3">
+                <span
+                  className={
+                    card.featured
+                      ? "flex h-9 w-9 items-center justify-center rounded-md bg-white/10 text-white"
+                      : "flex h-9 w-9 items-center justify-center rounded-md bg-[var(--surface-subtle)] text-[var(--muted-strong)]"
+                  }
+                >
+                  <Icon className="h-4 w-4" />
+                </span>
+                <span
+                  className={
+                    isPositive
+                      ? card.featured
+                        ? "inline-flex items-center gap-0.5 rounded-md bg-emerald-500/20 px-1.5 py-0.5 text-[11px] font-semibold text-emerald-200"
+                        : "inline-flex items-center gap-0.5 rounded-md bg-emerald-50 px-1.5 py-0.5 text-[11px] font-semibold text-emerald-700"
+                      : "inline-flex items-center gap-0.5 rounded-md bg-red-50 px-1.5 py-0.5 text-[11px] font-semibold text-red-700"
+                  }
+                >
+                  <ArrowUpRight
+                    className={`h-3 w-3 ${isPositive ? "" : "rotate-90"}`}
+                  />
+                  {card.delta}
+                </span>
+              </div>
+              <div className="mt-5">
+                <p
+                  className={
+                    card.featured
+                      ? "text-xs uppercase tracking-[0.14em] text-white/60"
+                      : "text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--muted-strong)]"
+                  }
+                >
+                  {card.title}
+                </p>
+                <p
+                  className={
+                    card.featured
+                      ? "mt-1 font-[family-name:var(--font-heading)] text-3xl font-semibold tracking-tight"
+                      : "mt-1 font-[family-name:var(--font-heading)] text-3xl font-semibold tracking-tight text-[var(--target-ink)]"
+                  }
+                >
+                  {card.value}
+                </p>
+                <p
+                  className={
+                    card.featured
+                      ? "mt-2 text-xs leading-5 text-white/70"
+                      : "mt-2 text-xs leading-5 text-[var(--muted)]"
+                  }
+                >
+                  {card.detail}
+                </p>
+              </div>
+            </article>
+          );
+        })}
+      </div>
+
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
+        <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-card)]">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--target-red)]">
+                Trend
+              </p>
+              <h2 className="mt-0.5 text-base font-semibold text-[var(--target-ink)]">
+                Sales performance
+              </h2>
+            </div>
+            <div className="flex items-center gap-3 text-[11px] text-[var(--muted-strong)]">
+              <LegendDot color="#cc0000" label="Sales" solid />
+              <LegendDot color="rgba(107, 114, 128, 0.7)" label="Traffic" />
+              <LegendDot color="rgba(245, 158, 11, 0.8)" label="Returns" />
+            </div>
+          </div>
+          <div className="mt-4 h-[280px] rounded-lg border border-[var(--border)] bg-[var(--surface-subtle)] p-3">
+            <TrendChart />
+          </div>
+        </section>
+
+        <aside className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-card)]">
+          <div className="flex items-center justify-between">
+            <h2 className="text-base font-semibold text-[var(--target-ink)]">Top products</h2>
+            <span className="text-[11px] text-[var(--muted)]">This week</span>
+          </div>
+          <ol className="mt-4 space-y-3">
+            {topProducts.map(({ product, signals }, index) => (
+              <li key={product.productId} className="flex items-start gap-3">
+                <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-[var(--surface-subtle)] text-[11px] font-semibold text-[var(--muted-strong)]">
+                  {index + 1}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="line-clamp-2 text-sm font-medium text-[var(--target-ink)]">
+                    {product.title}
+                  </p>
+                  <p className="mt-0.5 text-xs text-[var(--muted)]">
+                    {signals.weeklySales} weekly units
+                  </p>
+                  <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-[var(--surface-subtle)]">
+                    <div
+                      className="h-full rounded-full bg-[var(--target-red)]"
+                      style={{
+                        width: `${Math.min(100, (signals.weeklySales / Math.max(topProducts[0]?.signals.weeklySales ?? 1, 1)) * 100)}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+              </li>
+            ))}
+            {topProducts.length === 0 ? (
+              <li className="rounded-md border border-dashed border-[var(--border)] bg-[var(--surface-subtle)] p-3 text-xs text-[var(--muted)]">
+                No products available — run the seed script to populate.
+              </li>
+            ) : null}
+          </ol>
+        </aside>
+      </div>
     </section>
+  );
+}
+
+function LegendDot({ color, label, solid = false }: { color: string; label: string; solid?: boolean }) {
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <span
+        className="h-2 w-3 rounded-sm"
+        style={{
+          backgroundColor: solid ? color : "transparent",
+          borderTop: solid ? undefined : `2px dashed ${color}`,
+        }}
+      />
+      {label}
+    </span>
   );
 }
