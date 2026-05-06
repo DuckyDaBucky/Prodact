@@ -173,6 +173,161 @@ function CurrentLayoutPlan() {
   );
 }
 
+function RecommendedLayoutPlan() {
+  const optimizedAisles = [
+    { label: "Household", tone: "red" },
+    { label: "AirPods + tech", tone: "blue" },
+    { label: "Home textiles", tone: "amber" },
+    { label: "Seasonal", tone: "green" },
+    { label: "Apparel", tone: "neutral" },
+    { label: "Restock pull", tone: "red" },
+  ] as const;
+  const checkoutLanes = Array.from({ length: 6 });
+  const endcaps = Array.from({ length: 8 });
+
+  return (
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-subtle)] p-4 sm:p-6">
+      <div className="rounded-lg border border-[var(--border)] bg-white p-4 shadow-[var(--shadow-sm)]">
+        <div className="grid grid-cols-[4rem_minmax(0,1fr)_5rem] gap-4">
+          <div className="flex flex-col gap-3">
+            <div className="rounded-md bg-[#f6d58d] px-2 py-3 text-center text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-[#7b4c00] [writing-mode:vertical-rl] [text-orientation:mixed]">
+              Bakery
+            </div>
+            <div className="flex-1 rounded-md bg-[#bfeabd] px-2 py-3 text-center text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-[#2f7a33] [writing-mode:vertical-rl] [text-orientation:mixed]">
+              Produce
+            </div>
+            <div className="rounded-md bg-[#e9c8f2] px-2 py-3 text-center text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-[#74408e] [writing-mode:vertical-rl] [text-orientation:mixed]">
+              Floral
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="grid grid-cols-[1fr_1.3fr_1.3fr_1fr] gap-3">
+              <div className="rounded-md bg-[#fff2a6] px-3 py-2 text-center text-xs font-semibold uppercase tracking-[0.14em] text-[#6c6200]">
+                Dairy
+              </div>
+              <div className="rounded-md bg-[#f4a6c7] px-3 py-2 text-center text-xs font-semibold uppercase tracking-[0.14em] text-[#7f204a]">
+                Fresh
+              </div>
+              <div className="rounded-md bg-[#f4a6c7] px-3 py-2 text-center text-xs font-semibold uppercase tracking-[0.14em] text-[#7f204a]">
+                Meal prep
+              </div>
+              <div className="rounded-md bg-[#b9dcfb] px-3 py-2 text-center text-xs font-semibold uppercase tracking-[0.14em] text-[#245988]">
+                Frozen
+              </div>
+            </div>
+
+            <div className="grid grid-cols-[1.1fr_2.4fr_1.1fr] gap-3">
+              <div className="space-y-3">
+                <div className="rounded-md bg-[var(--target-red-soft)] px-3 py-3 text-center text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-[var(--target-red)]">
+                  Promo endcaps
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {endcaps.map((_, index) => (
+                    <div
+                      key={index}
+                      className="h-12 rounded-md border border-red-100 bg-[#fff1f1]"
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-md border border-[var(--border)] bg-[#fbfcff] p-3">
+                <div className="grid grid-cols-3 gap-3">
+                  {optimizedAisles.map((aisle) => (
+                    <div key={aisle.label} className="space-y-2">
+                      <div
+                        className={cn(
+                          "h-3 rounded-full",
+                          aisle.tone === "red" && "bg-[var(--target-red)]",
+                          aisle.tone === "blue" && "bg-[#4f83c3]",
+                          aisle.tone === "amber" && "bg-[#d7a63f]",
+                          aisle.tone === "green" && "bg-[#4c9a5a]",
+                          aisle.tone === "neutral" && "bg-[#6b7280]",
+                        )}
+                      />
+                      <div
+                        className={cn(
+                          "flex h-32 items-center justify-center rounded-md border px-2 text-center text-[0.68rem] font-semibold uppercase tracking-[0.1em]",
+                          aisle.tone === "red" &&
+                            "border-red-100 bg-[var(--target-red-soft)] text-[var(--target-red)]",
+                          aisle.tone === "blue" &&
+                            "border-blue-100 bg-blue-50 text-blue-700",
+                          aisle.tone === "amber" &&
+                            "border-amber-100 bg-amber-50 text-amber-700",
+                          aisle.tone === "green" &&
+                            "border-emerald-100 bg-emerald-50 text-emerald-700",
+                          aisle.tone === "neutral" &&
+                            "border-slate-200 bg-slate-50 text-slate-700",
+                        )}
+                      >
+                        {aisle.label}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div className="rounded-md bg-emerald-50 px-3 py-3 text-center text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-emerald-700">
+                  Fast restock
+                </div>
+                <div className="h-[18.5rem] rounded-md border border-emerald-100 bg-[repeating-linear-gradient(135deg,#ecfdf5_0,#ecfdf5_10px,#dcfce7_10px,#dcfce7_20px)] p-3">
+                  <div className="flex h-full items-center justify-center rounded-md bg-white/70 px-2 text-center text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-emerald-800">
+                    Backroom pull path
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-[1fr_1.6fr_1fr] items-end gap-4">
+              <div className="space-y-2">
+                <div className="h-1 rounded-full bg-[var(--target-ink)]" />
+                <p className="text-center text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--target-ink)]">
+                  Entrance
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <div className="grid grid-cols-6 gap-2">
+                  {checkoutLanes.map((_, index) => (
+                    <div
+                      key={index}
+                      className="h-12 rounded-md bg-[#efe49c] shadow-[inset_0_-8px_0_rgba(0,0,0,0.08)]"
+                    />
+                  ))}
+                </div>
+                <p className="text-center text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--muted)]">
+                  Checkout conversion zone
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <div className="h-1 rounded-full bg-[var(--target-ink)]" />
+                <p className="text-center text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--target-ink)]">
+                  Exit
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            <div className="rounded-md bg-[#cde5fb] px-2 py-3 text-center text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-[#2b5f92] [writing-mode:vertical-rl] [text-orientation:mixed]">
+              Pickup
+            </div>
+            <div className="flex-1 rounded-md bg-[#ccf0ee] px-2 py-3 text-center text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-[#2f6e6a] [writing-mode:vertical-rl] [text-orientation:mixed]">
+              Pharmacy
+            </div>
+            <div className="rounded-md bg-[#101010] px-2 py-3 text-center text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-white">
+              Grab & Go
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function StoreLayoutPage() {
   const [activeTab, setActiveTab] = useState<TabId>("current");
 
@@ -231,40 +386,7 @@ export default function StoreLayoutPage() {
               </span>
             </div>
             <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
-              <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-subtle)] p-5">
-                <div className="grid min-h-[28rem] grid-cols-4 gap-3">
-                  <div className="rounded-md bg-[var(--target-red-soft)] p-4 text-sm font-semibold text-[var(--target-red)]">
-                    Promo endcaps
-                  </div>
-                  <div className="col-span-2 rounded-md border border-[var(--border)] bg-[var(--surface)] p-4 text-center text-sm font-medium text-[var(--target-ink)]">
-                    Recommended cross-merchandising aisle
-                  </div>
-                  <div className="rounded-md bg-emerald-50 p-4 text-sm font-semibold text-emerald-700">
-                    Fast restock lane
-                  </div>
-                  <div className="col-span-4 grid grid-cols-6 gap-2">
-                    {Array.from({ length: 12 }, (_, index) => (
-                      <div
-                        key={index}
-                        className={[
-                          "h-24 rounded-md border border-[var(--border)]",
-                          index % 3 === 0
-                            ? "bg-[var(--target-red-soft)]"
-                            : index % 3 === 1
-                              ? "bg-[var(--surface)]"
-                              : "bg-amber-50",
-                        ].join(" ")}
-                      />
-                    ))}
-                  </div>
-                  <div className="col-span-2 rounded-md bg-[var(--target-ink)] p-4 text-center text-sm font-semibold text-white">
-                    Entrance
-                  </div>
-                  <div className="col-span-2 rounded-md bg-[var(--target-red-soft)] p-4 text-center text-sm font-semibold text-[var(--target-red)]">
-                    Checkout conversion zone
-                  </div>
-                </div>
-              </div>
+              <RecommendedLayoutPlan />
 
               <aside className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5">
                 <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--target-red)]">
