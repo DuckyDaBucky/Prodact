@@ -150,7 +150,7 @@ export default async function ProductAnalysisPage({
         <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--muted)]">
           Reads seeded Target rows from Postgres, ranks adjacent products with
           Gemini processing plus deterministic fallback scoring, and persists
-          recommendation runs for repeatable PA4 demo evidence.
+          recommendation runs for repeatable demo evidence.
         </p>
       </div>
 

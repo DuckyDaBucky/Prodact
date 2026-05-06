@@ -10,7 +10,12 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/components/cn";
-import { deriveNotifications, listDemoProducts } from "@/lib/demo-data";
+import {
+  deriveNotifications,
+  deriveProductSignals,
+  listDemoProducts,
+} from "@/lib/demo-data";
+import type { TargetProductRecord } from "@/lib/recommendations";
 import { requireSession } from "@/lib/session";
 
 const salesData = [4.1, 4.8, 5.2, 5.9, 6.4, 7.1, 7.6];
@@ -92,6 +97,7 @@ export default async function DashboardPage() {
   const notifications = deriveNotifications(products);
   const geminiReady = Boolean(process.env.GEMINI_API_KEY?.trim());
   const serviceCards = buildServiceCards(products.length, notifications.length, geminiReady);
+  const operationalFocus = buildOperationalFocus(products);
   const salesPath = buildLinePath(salesData, 56, 472, 210, 44);
 
   return (
@@ -129,10 +135,10 @@ export default async function DashboardPage() {
               </div>
               <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm">
                 <p className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--target-red)]">
-                  Today&rsquo;s AI focus
+                  Today&rsquo;s operational focus
                 </p>
                 <p className="mt-1 text-sm text-[var(--target-ink)]">
-                  Value baskets are outperforming forecast in the Midwest region.
+                  {operationalFocus}
                 </p>
               </div>
             </div>
@@ -155,7 +161,7 @@ export default async function DashboardPage() {
             <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--target-red)]">
-                  PA4 MVP services
+                  Service status
                 </p>
                 <h3 className="mt-1 font-[family-name:var(--font-heading)] text-lg font-semibold tracking-tight text-[var(--target-ink)]">
                   Backend slices ready for demo
@@ -473,4 +479,67 @@ function buildLinePath(
       return `${index === 0 ? "M" : "L"} ${x.toFixed(2)} ${y.toFixed(2)}`;
     })
     .join(" ");
+}
+
+function buildOperationalFocus(products: TargetProductRecord[]) {
+  if (products.length === 0) {
+    return "Seed Target products to activate product-specific operational guidance.";
+  }
+
+  let strongestGap: {
+    product: TargetProductRecord;
+    gap: number;
+    stockOnHand: number;
+    reorderPoint: number;
+    weeklySales: number;
+  } | null = null;
+
+  for (const product of products) {
+    const signals = deriveProductSignals(product);
+    const gap = signals.reorderPoint - signals.stockOnHand;
+
+    if (signals.inventoryRisk === "high" && gap > (strongestGap?.gap ?? -1)) {
+      strongestGap = {
+        product,
+        gap,
+        stockOnHand: signals.stockOnHand,
+        reorderPoint: signals.reorderPoint,
+        weeklySales: signals.weeklySales,
+      };
+    }
+  }
+
+  if (strongestGap) {
+    const category = strongestGap.product.primaryCategory ?? "uncategorized";
+
+    return `${category} needs restock review: ${truncateText(
+      strongestGap.product.title,
+      72,
+    )} has ${strongestGap.stockOnHand} on hand against a ${
+      strongestGap.reorderPoint
+    } reorder point with ${strongestGap.weeklySales} derived weekly sales.`;
+  }
+
+  const highDemandProduct = products.reduce((bestProduct, product) => {
+    const bestSignals = deriveProductSignals(bestProduct);
+    const currentSignals = deriveProductSignals(product);
+
+    return currentSignals.weeklySales > bestSignals.weeklySales ? product : bestProduct;
+  }, products[0]);
+  const highDemandSignals = deriveProductSignals(highDemandProduct);
+
+  return `${highDemandProduct.primaryCategory ?? "Product"} demand is strongest for ${truncateText(
+    highDemandProduct.title,
+    72,
+  )}, with ${highDemandSignals.weeklySales} derived weekly sales and ${
+    highDemandSignals.stockOnHand
+  } units on hand.`;
+}
+
+function truncateText(value: string, maxLength: number) {
+  if (value.length <= maxLength) {
+    return value;
+  }
+
+  return `${value.slice(0, maxLength - 1).trim()}...`;
 }

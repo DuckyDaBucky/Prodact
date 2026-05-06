@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight, Search } from "lucide-react";
+import { ArrowUpRight, ChevronLeft, ChevronRight, Search } from "lucide-react";
 
 import { ProductAiInsightLoader } from "@/components/product-ai-insight-loader";
 import {
@@ -13,6 +13,7 @@ import { getTargetProductById } from "@/lib/recommendations";
 type SearchPageProps = {
   searchParams: Promise<{
     q?: string;
+    page?: string;
     productId?: string;
   }>;
 };
@@ -20,7 +21,10 @@ type SearchPageProps = {
 export default async function ProductSearchPage({ searchParams }: SearchPageProps) {
   const params = await searchParams;
   const query = params.q?.trim() ?? "";
-  const productsPromise = searchDemoProducts(query, 36).catch(() => []);
+  const requestedPage = Number.parseInt(params.page ?? "1", 10);
+  const currentPage = Number.isFinite(requestedPage) && requestedPage > 0 ? requestedPage : 1;
+  const pageSize = 10;
+  const productsPromise = searchDemoProducts(query, 120).catch(() => []);
   const requestedProductPromise = params.productId
     ? getTargetProductById(params.productId).catch(() => null)
     : Promise.resolve(null);
@@ -28,8 +32,14 @@ export default async function ProductSearchPage({ searchParams }: SearchPageProp
     productsPromise,
     requestedProductPromise,
   ]);
+  const totalPages = Math.max(1, Math.ceil(products.length / pageSize));
+  const safePage = Math.min(currentPage, totalPages);
+  const startIndex = (safePage - 1) * pageSize;
+  const visibleProducts = products.slice(startIndex, startIndex + pageSize);
+  const displayStart = products.length === 0 ? 0 : startIndex + 1;
+  const displayEnd = startIndex + visibleProducts.length;
   const selectedProduct =
-    requestedProduct ?? products[0] ?? null;
+    requestedProduct ?? visibleProducts[0] ?? products[0] ?? null;
 
   return (
     <section className="space-y-5">
@@ -43,14 +53,14 @@ export default async function ProductSearchPage({ searchParams }: SearchPageProp
               Search seeded Target products
             </h2>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--muted)]">
-              Results come from the Drizzle <code className="rounded bg-[var(--surface-subtle)] px-1 py-0.5 text-xs">target_product</code> table.
-              Selecting a product sends its seeded fields and derived signals
-              through Gemini for live demo analysis.
+              Results come from the Drizzle{" "}
+              <code className="rounded bg-[var(--surface-subtle)] px-1 py-0.5 text-xs">
+                target_product
+              </code>{" "}
+              table. Select a row to review the seeded fields and run product
+              analysis.
             </p>
           </div>
-          <span className="inline-flex items-center rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
-            Gemini-ready
-          </span>
         </div>
 
         <form className="mt-5 flex flex-col gap-2 sm:flex-row" action="/search">
@@ -84,60 +94,83 @@ export default async function ProductSearchPage({ searchParams }: SearchPageProp
               <h3 className="mt-0.5 text-base font-semibold text-[var(--target-ink)]">
                 {products.length} seeded products found
               </h3>
+              <p className="mt-0.5 text-xs text-[var(--muted)]">
+                Showing {displayStart}-{displayEnd} of {products.length}
+              </p>
             </div>
             <span className="rounded-md border border-[var(--border)] bg-[var(--surface-subtle)] px-2 py-1 font-mono text-[11px] text-[var(--muted-strong)]">
               target_product
             </span>
           </div>
 
-          <div className="divide-y divide-[var(--border)]">
-            {products.map((product) => {
-              const signals = deriveProductSignals(product);
-              const isSelected = product.productId === selectedProduct?.productId;
-              const riskClass = riskBadgeClass(signals.inventoryRisk);
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[760px] text-left text-sm">
+              <thead className="border-b border-[var(--border)] bg-[var(--surface-subtle)] text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--muted-strong)]">
+                <tr>
+                  <th className="px-5 py-3">Product</th>
+                  <th className="px-3 py-3">Price</th>
+                  <th className="px-3 py-3">Rating</th>
+                  <th className="px-3 py-3">Stock</th>
+                  <th className="px-3 py-3">Risk</th>
+                  <th className="px-5 py-3 text-right">Open</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[var(--border)]">
+                {visibleProducts.map((product) => {
+                  const signals = deriveProductSignals(product);
+                  const isSelected = product.productId === selectedProduct?.productId;
+                  const productHref = buildSearchHref(query, safePage, product.productId);
 
-              return (
-                <Link
-                  key={product.productId}
-                  className={[
-                    "block px-5 py-4 transition",
-                    isSelected
-                      ? "bg-[var(--target-red-soft)]"
-                      : "hover:bg-[var(--surface-subtle)]",
-                  ].join(" ")}
-                  href={`/search?q=${encodeURIComponent(query)}&productId=${encodeURIComponent(
-                    product.productId,
-                  )}`}
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="min-w-0">
-                      <p className="line-clamp-2 text-sm font-semibold text-[var(--target-ink)]">
-                        {product.title}
-                      </p>
-                      <p className="mt-0.5 truncate text-xs text-[var(--muted)]">
-                        {product.primaryCategory ?? "Uncategorized"} &middot;{" "}
-                        <span className="font-mono">{product.productId}</span>
-                      </p>
-                    </div>
-                    <span className="shrink-0 rounded-md border border-[var(--border)] bg-[var(--surface)] px-2 py-1 text-xs font-semibold text-[var(--target-red)]">
-                      {formatCurrency(product.finalPrice, product.currency)}
-                    </span>
-                  </div>
-                  <div className="mt-2.5 flex flex-wrap items-center gap-1.5 text-[11px]">
-                    <span className="rounded-md bg-amber-50 px-2 py-0.5 font-medium text-amber-700">
-                      {product.rating ?? "n/a"}
-                    </span>
-                    <span className="rounded-md bg-[var(--surface-subtle)] px-2 py-0.5 text-[var(--muted-strong)]">
-                      {formatNumber(product.reviewsCount)} reviews
-                    </span>
-                    <span className="rounded-md bg-[var(--surface-subtle)] px-2 py-0.5 text-[var(--muted-strong)]">
-                      {signals.stockOnHand} on hand
-                    </span>
-                    <span className={riskClass}>{signals.inventoryRisk} risk</span>
-                  </div>
-                </Link>
-              );
-            })}
+                  return (
+                    <tr
+                      key={product.productId}
+                      className={
+                        isSelected
+                          ? "bg-[var(--target-red-soft)]"
+                          : "bg-[var(--surface)]"
+                      }
+                    >
+                      <td className="px-5 py-3">
+                        <Link
+                          className="block max-w-[360px] hover:text-[var(--target-red)]"
+                          href={productHref}
+                        >
+                          <span className="line-clamp-2 font-semibold text-[var(--target-ink)]">
+                            {product.title}
+                          </span>
+                          <span className="mt-1 block truncate text-xs text-[var(--muted)]">
+                            {product.primaryCategory ?? "Uncategorized"} &middot;{" "}
+                            <span className="font-mono">{product.productId}</span>
+                          </span>
+                        </Link>
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-3 font-medium text-[var(--target-ink)]">
+                        {formatCurrency(product.finalPrice, product.currency)}
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-3 text-[var(--muted-strong)]">
+                        {product.rating ?? "n/a"} / {formatNumber(product.reviewsCount)}
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-3 text-[var(--muted-strong)]">
+                        {signals.stockOnHand} on hand
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-3">
+                        <span className={riskBadgeClass(signals.inventoryRisk)}>
+                          {signals.inventoryRisk}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3 text-right">
+                        <Link
+                          className="inline-flex items-center justify-center rounded-md border border-[var(--border)] bg-[var(--surface)] px-2.5 py-1.5 text-xs font-medium text-[var(--target-ink)] transition hover:border-[var(--target-red)] hover:text-[var(--target-red)]"
+                          href={productHref}
+                        >
+                          View
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
 
             {products.length === 0 ? (
               <div className="m-5 rounded-lg border border-dashed border-[var(--border-strong)] bg-[var(--surface-subtle)] p-5 text-sm text-[var(--muted)]">
@@ -149,6 +182,42 @@ export default async function ProductSearchPage({ searchParams }: SearchPageProp
               </div>
             ) : null}
           </div>
+
+          {products.length > pageSize ? (
+            <div className="flex items-center justify-between gap-3 border-t border-[var(--border)] px-5 py-3 text-sm">
+              {safePage > 1 ? (
+                <Link
+                  className="inline-flex items-center gap-1 rounded-md border border-[var(--border)] px-2.5 py-1.5 font-medium text-[var(--target-ink)] transition hover:bg-[var(--surface-subtle)]"
+                  href={buildSearchHref(query, safePage - 1)}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Previous
+                </Link>
+              ) : (
+                <span className="inline-flex items-center gap-1 rounded-md border border-[var(--border)] px-2.5 py-1.5 font-medium text-[var(--muted)] opacity-60">
+                  <ChevronLeft className="h-4 w-4" />
+                  Previous
+                </span>
+              )}
+              <span className="text-xs font-medium text-[var(--muted-strong)]">
+                Page {safePage} of {totalPages}
+              </span>
+              {safePage < totalPages ? (
+                <Link
+                  className="inline-flex items-center gap-1 rounded-md border border-[var(--border)] px-2.5 py-1.5 font-medium text-[var(--target-ink)] transition hover:bg-[var(--surface-subtle)]"
+                  href={buildSearchHref(query, safePage + 1)}
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4" />
+                </Link>
+              ) : (
+                <span className="inline-flex items-center gap-1 rounded-md border border-[var(--border)] px-2.5 py-1.5 font-medium text-[var(--muted)] opacity-60">
+                  Next
+                  <ChevronRight className="h-4 w-4" />
+                </span>
+              )}
+            </div>
+          ) : null}
         </section>
 
         <div className="space-y-4">
@@ -212,4 +281,24 @@ function riskBadgeClass(risk: "low" | "medium" | "high") {
   }
 
   return `${base} bg-emerald-50 text-emerald-700`;
+}
+
+function buildSearchHref(query: string, page: number, productId?: string) {
+  const params = new URLSearchParams();
+
+  if (query) {
+    params.set("q", query);
+  }
+
+  if (page > 1) {
+    params.set("page", String(page));
+  }
+
+  if (productId) {
+    params.set("productId", productId);
+  }
+
+  const queryString = params.toString();
+
+  return queryString ? `/search?${queryString}` : "/search";
 }

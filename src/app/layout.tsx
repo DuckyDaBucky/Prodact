@@ -14,7 +14,7 @@ const bodyFont = Source_Sans_3({
 
 export const metadata: Metadata = {
   title: "Prodact Internal Tool",
-  description: "Prodact internal tool boilerplate for the PA4 MVP.",
+  description: "Prodact internal product intelligence tool.",
 };
 
 export default function RootLayout({

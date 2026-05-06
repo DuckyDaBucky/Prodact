@@ -20,7 +20,7 @@ const featureAreas = [
   "Store Performance",
   "Competitor Analysis",
   "Notifications",
-  "Messages",
+  "AskProdact",
   "Store Layout",
   "Settings",
 ];

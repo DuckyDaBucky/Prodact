@@ -258,11 +258,64 @@ function buildWorkspaceFallback(
   const sampleText = sample
     ? ` Best matched seeded product: ${sample.title} (${sample.category ?? "uncategorized"}) with ${sample.stockOnHand} on hand, reorder point ${sample.reorderPoint}, and ${sample.inventoryRisk} inventory risk.`
     : "";
+  const normalizedQuestion = question.toLowerCase();
+  const rateLimitNote = reason.includes("HTTP 429")
+    ? "Gemini rate limit hit (HTTP 429), so this answer is using the local database fallback. "
+    : `${reason} `;
+  const rankedByPrice = [...context.sampleProducts].sort(
+    (left, right) => parseCurrency(right.price) - parseCurrency(left.price),
+  );
+  const rankedByDemand = [...context.sampleProducts].sort(
+    (left, right) => right.weeklySales - left.weeklySales,
+  );
+  const rankedByRating = [...context.sampleProducts].sort((left, right) => {
+    const ratingDelta = parseFloatOrZero(right.rating) - parseFloatOrZero(left.rating);
+
+    return ratingDelta !== 0
+      ? ratingDelta
+      : (right.reviewsCount ?? 0) - (left.reviewsCount ?? 0);
+  });
+
+  let directAnswer = "";
+
+  if (normalizedQuestion.includes("expensive") || normalizedQuestion.includes("highest price")) {
+    const product = rankedByPrice[0];
+
+    if (product) {
+      directAnswer = `Most expensive matched seeded product: ${product.title} at ${
+        product.price ?? "an unavailable price"
+      }. `;
+    }
+  } else if (
+    normalizedQuestion.includes("best") ||
+    normalizedQuestion.includes("top") ||
+    normalizedQuestion.includes("sell")
+  ) {
+    const product = rankedByDemand[0] ?? rankedByRating[0];
+
+    if (product) {
+      directAnswer = `Best current demo candidate by derived weekly movement: ${
+        product.title
+      } with ${product.weeklySales} weekly sales, ${product.stockOnHand} on hand, and ${
+        product.rating ?? "n/a"
+      } rating. `;
+    }
+  } else if (normalizedQuestion.includes("risk") || normalizedQuestion.includes("restock")) {
+    const product = [...context.sampleProducts].sort(
+      (left, right) =>
+        riskRank(right.inventoryRisk) - riskRank(left.inventoryRisk) ||
+        right.reorderPoint - right.stockOnHand - (left.reorderPoint - left.stockOnHand),
+    )[0];
+
+    if (product) {
+      directAnswer = `Restock first: ${product.title}, because it has ${product.stockOnHand} on hand against a ${product.reorderPoint} reorder point. `;
+    }
+  }
 
   return {
     provider: "fallback",
     model: "heuristic-demo",
-    answer: `${reason} Prodact currently covers ${featureList}. The demo has ${formatNumber(
+    answer: `${rateLimitNote}${directAnswer}Prodact currently covers ${featureList}. The demo has ${formatNumber(
       context.productCount,
     )} seeded Target products and ${formatNumber(
       context.alertCount,
@@ -271,6 +324,38 @@ function buildWorkspaceFallback(
     )} high-risk inventory rows in the current sample. For your question, "${question}", use the route map and matched database products as the main evidence.${sampleText}`,
     generatedAt: new Date().toISOString(),
   };
+}
+
+function parseCurrency(value: string | null) {
+  if (!value) {
+    return 0;
+  }
+
+  const parsed = Number.parseFloat(value.replace(/[^0-9.-]/g, ""));
+
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function parseFloatOrZero(value: string | null) {
+  if (!value) {
+    return 0;
+  }
+
+  const parsed = Number.parseFloat(value);
+
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function riskRank(risk: string) {
+  if (risk === "high") {
+    return 3;
+  }
+
+  if (risk === "medium") {
+    return 2;
+  }
+
+  return 1;
 }
 
 export async function generateWorkspaceAssistantReply(

@@ -1,6 +1,10 @@
 import Link from "next/link";
 import {
+  ArrowUpDown,
   Boxes,
+  ChevronLeft,
+  ChevronRight,
+  CircleHelp,
   PackageCheck,
   Search,
   Truck,
@@ -19,14 +23,24 @@ import { getTargetProductById } from "@/lib/recommendations";
 type InventoryPageProps = {
   searchParams: Promise<{
     q?: string;
+    page?: string;
     productId?: string;
+    sort?: InventorySortKey;
+    dir?: "asc" | "desc";
   }>;
 };
+
+type InventorySortKey = "product" | "stock" | "incoming" | "reorder" | "movement" | "risk";
 
 export default async function InventoryPage({ searchParams }: InventoryPageProps) {
   const params = await searchParams;
   const query = params.q?.trim() ?? "";
-  const products = await searchDemoProducts(query, 24).catch(() => []);
+  const requestedPage = Number.parseInt(params.page ?? "1", 10);
+  const currentPage = Number.isFinite(requestedPage) && requestedPage > 0 ? requestedPage : 1;
+  const sortKey = isInventorySortKey(params.sort) ? params.sort : "risk";
+  const sortDirection = params.dir === "asc" ? "asc" : "desc";
+  const pageSize = 10;
+  const products = await searchDemoProducts(query, 120).catch(() => []);
   const selectedProduct =
     (params.productId ? await getTargetProductById(params.productId).catch(() => null) : null) ??
     products[0] ??
@@ -36,7 +50,15 @@ export default async function InventoryPage({ searchParams }: InventoryPageProps
     product,
     signals: deriveProductSignals(product),
   }));
-  const visibleRows = inventoryRows.slice(0, 12);
+  const sortedRows = [...inventoryRows].sort((left, right) =>
+    compareInventoryRows(left, right, sortKey, sortDirection),
+  );
+  const totalPages = Math.max(1, Math.ceil(sortedRows.length / pageSize));
+  const safePage = Math.min(currentPage, totalPages);
+  const startIndex = (safePage - 1) * pageSize;
+  const visibleRows = sortedRows.slice(startIndex, startIndex + pageSize);
+  const displayStart = sortedRows.length === 0 ? 0 : startIndex + 1;
+  const displayEnd = startIndex + visibleRows.length;
   const highRiskCount = inventoryRows.filter(
     ({ signals }) => signals.inventoryRisk === "high",
   ).length;
@@ -62,8 +84,8 @@ export default async function InventoryPage({ searchParams }: InventoryPageProps
             </h2>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--muted)]">
               The MVP derives on-hand units, incoming stock, reorder points,
-              sales velocity, and return risk from each seeded product so the
-              workflow is demoable without a live POS integration.
+              sales velocity, and return risk from each seeded product. Sort the
+              table like a spreadsheet to review the products that need action.
             </p>
           </div>
           <form className="flex w-full gap-2 lg:w-[360px]" action="/inventory">
@@ -123,7 +145,7 @@ export default async function InventoryPage({ searchParams }: InventoryPageProps
                 Restock candidates
               </h3>
               <p className="mt-1 text-xs text-[var(--muted)]">
-                Showing {visibleRows.length} of {products.length} filtered products
+                Showing {displayStart}-{displayEnd} of {products.length} filtered products
               </p>
             </div>
             <span className="rounded-md border border-[var(--border)] bg-[var(--surface-subtle)] px-2 py-1 text-[11px] font-medium text-[var(--muted-strong)]">
@@ -135,11 +157,60 @@ export default async function InventoryPage({ searchParams }: InventoryPageProps
             <table className="w-full min-w-[760px] text-sm">
               <thead className="border-b border-[var(--border)] bg-[var(--surface-subtle)] text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--muted-strong)]">
                 <tr>
-                  <th className="px-5 py-2.5">Product</th>
-                  <th className="px-3 py-2.5">Stock</th>
-                  <th className="px-3 py-2.5">Reorder</th>
-                  <th className="px-3 py-2.5">Movement</th>
-                  <th className="px-3 py-2.5">Risk</th>
+                  <SortableHeader
+                    className="px-5 py-2.5"
+                    query={query}
+                    sortKey="product"
+                    activeSortKey={sortKey}
+                    direction={sortDirection}
+                  >
+                    Product
+                  </SortableHeader>
+                  <SortableHeader
+                    className="px-3 py-2.5"
+                    query={query}
+                    sortKey="stock"
+                    activeSortKey={sortKey}
+                    direction={sortDirection}
+                  >
+                    On hand
+                  </SortableHeader>
+                  <SortableHeader
+                    className="px-3 py-2.5"
+                    query={query}
+                    sortKey="incoming"
+                    activeSortKey={sortKey}
+                    direction={sortDirection}
+                  >
+                    Incoming
+                  </SortableHeader>
+                  <SortableHeader
+                    className="px-3 py-2.5"
+                    query={query}
+                    sortKey="reorder"
+                    activeSortKey={sortKey}
+                    direction={sortDirection}
+                  >
+                    Reorder
+                  </SortableHeader>
+                  <SortableHeader
+                    className="px-3 py-2.5"
+                    query={query}
+                    sortKey="movement"
+                    activeSortKey={sortKey}
+                    direction={sortDirection}
+                  >
+                    Movement
+                  </SortableHeader>
+                  <SortableHeader
+                    className="px-3 py-2.5"
+                    query={query}
+                    sortKey="risk"
+                    activeSortKey={sortKey}
+                    direction={sortDirection}
+                  >
+                    Risk
+                  </SortableHeader>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--border)]">
@@ -154,9 +225,13 @@ export default async function InventoryPage({ searchParams }: InventoryPageProps
                       <td className="max-w-[24rem] px-5 py-3.5">
                         <Link
                           className="block hover:text-[var(--target-red)]"
-                          href={`/inventory?q=${encodeURIComponent(
+                          href={buildInventoryHref({
                             query,
-                          )}&productId=${encodeURIComponent(product.productId)}`}
+                            page: safePage,
+                            sortKey,
+                            sortDirection,
+                            productId: product.productId,
+                          })}
                         >
                           <span className="line-clamp-1 font-medium text-[var(--target-ink)]">
                             {product.title}
@@ -169,9 +244,9 @@ export default async function InventoryPage({ searchParams }: InventoryPageProps
                       </td>
                       <td className="px-3 py-3.5 text-[var(--target-ink)]">
                         {signals.stockOnHand} on hand
-                        <span className="block text-xs text-[var(--muted)]">
-                          {signals.incomingUnits} incoming
-                        </span>
+                      </td>
+                      <td className="px-3 py-3.5 text-[var(--target-ink)]">
+                        {signals.incomingUnits}
                       </td>
                       <td className="px-3 py-3.5 text-[var(--target-ink)]">
                         {signals.reorderPoint}
@@ -180,9 +255,22 @@ export default async function InventoryPage({ searchParams }: InventoryPageProps
                         {signals.weeklySales} weekly
                       </td>
                       <td className="px-3 py-3.5">
-                        <span className={riskClassName(signals.inventoryRisk)}>
-                          {signals.inventoryRisk}
-                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <span className={riskClassName(signals.inventoryRisk)}>
+                            {signals.inventoryRisk}
+                          </span>
+                          <span
+                            className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface)] text-[var(--muted)]"
+                            title={riskExplanation(
+                              signals.inventoryRisk,
+                              signals.stockOnHand,
+                              signals.reorderPoint,
+                              signals.weeklySales,
+                            )}
+                          >
+                            <CircleHelp className="h-3.5 w-3.5" />
+                          </span>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -190,6 +278,52 @@ export default async function InventoryPage({ searchParams }: InventoryPageProps
               </tbody>
             </table>
           </div>
+
+          {sortedRows.length > pageSize ? (
+            <div className="flex items-center justify-between gap-3 border-t border-[var(--border)] px-5 py-3 text-sm">
+              {safePage > 1 ? (
+                <Link
+                  className="inline-flex items-center gap-1 rounded-md border border-[var(--border)] px-2.5 py-1.5 font-medium text-[var(--target-ink)] transition hover:bg-[var(--surface-subtle)]"
+                  href={buildInventoryHref({
+                    query,
+                    page: safePage - 1,
+                    sortKey,
+                    sortDirection,
+                  })}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Previous
+                </Link>
+              ) : (
+                <span className="inline-flex items-center gap-1 rounded-md border border-[var(--border)] px-2.5 py-1.5 font-medium text-[var(--muted)] opacity-60">
+                  <ChevronLeft className="h-4 w-4" />
+                  Previous
+                </span>
+              )}
+              <span className="text-xs font-medium text-[var(--muted-strong)]">
+                Page {safePage} of {totalPages}
+              </span>
+              {safePage < totalPages ? (
+                <Link
+                  className="inline-flex items-center gap-1 rounded-md border border-[var(--border)] px-2.5 py-1.5 font-medium text-[var(--target-ink)] transition hover:bg-[var(--surface-subtle)]"
+                  href={buildInventoryHref({
+                    query,
+                    page: safePage + 1,
+                    sortKey,
+                    sortDirection,
+                  })}
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4" />
+                </Link>
+              ) : (
+                <span className="inline-flex items-center gap-1 rounded-md border border-[var(--border)] px-2.5 py-1.5 font-medium text-[var(--muted)] opacity-60">
+                  Next
+                  <ChevronRight className="h-4 w-4" />
+                </span>
+              )}
+            </div>
+          ) : null}
         </section>
 
         <aside className="space-y-4">

@@ -54,8 +54,8 @@ export const navItems = [
   },
   {
     href: "/messages",
-    label: "Prodact",
-    description: "Ask the DB-grounded Prodact assistant",
+    label: "AskProdact",
+    description: "Ask the DB-grounded assistant",
     icon: Store,
   },
   {

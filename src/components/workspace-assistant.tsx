@@ -32,7 +32,7 @@ export function WorkspaceAssistant() {
       role: "assistant",
       body:
         "Ask about product search, inventory, product analysis, competitor analysis, notifications, store performance, or deployment evidence. Answers are grounded in the current seeded Target data and app routes.",
-      meta: "Prodact assistant",
+      meta: "AskProdact",
     },
   ]);
   const [error, setError] = useState<string | null>(null);
@@ -107,10 +107,10 @@ export function WorkspaceAssistant() {
         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--target-red)]">
-              Messages
+              AskProdact
             </p>
             <h2 className="mt-1 text-lg font-semibold text-[var(--target-ink)]">
-              Prodact assistant
+              Database-grounded assistant
             </h2>
             <p className="mt-1 max-w-3xl text-sm leading-6 text-[var(--muted)]">
               Ask questions across the current app. The endpoint retrieves seeded Target products,
@@ -180,7 +180,7 @@ export function WorkspaceAssistant() {
             <input
               value={question}
               onChange={(event) => setQuestion(event.target.value)}
-              placeholder="Ask about a product, inventory risk, competitor signal, route, or PA4 evidence"
+              placeholder="Ask about a product, inventory risk, competitor signal, route, or deployment evidence"
               className="min-h-10 flex-1 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--target-ink)] outline-none transition focus:border-[var(--target-red)] focus:ring-2 focus:ring-[var(--ring)]"
             />
             <button
