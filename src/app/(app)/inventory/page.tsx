@@ -33,6 +33,37 @@ type InventoryPageProps = {
 
 type InventorySortKey = "product" | "stock" | "incoming" | "reorder" | "movement" | "risk";
 
+const demoAirPodsProduct: TargetProductRecord = {
+  productId: "DEMO-AIRPODS-PRO-2",
+  url: "https://www.target.com/s?searchTerm=airpods+pro",
+  title: "Apple AirPods Pro (2nd generation) with MagSafe Case (USB-C)",
+  productDescription:
+    "Apple AirPods Pro with active noise cancellation, transparency mode, spatial audio, and a MagSafe charging case. This fallback keeps the inventory side panel focused on AirPods when the seeded dataset is not available.",
+  rating: "4.80",
+  reviewsCount: 12543,
+  initialPrice: "249.99",
+  finalPrice: "189.99",
+  currency: "USD",
+  sellerName: "Target",
+  breadcrumbs: ["Electronics", "Headphones", "Earbuds"],
+  relatedCategories: ["Electronics", "Headphones", "Apple"],
+  images: [],
+  productSpecifications: {
+    brand: "Apple",
+    model: "AirPods Pro 2",
+    connection: "Bluetooth",
+  },
+  shippingReturnsPolicy: "Shipping and returns depend on Target store availability.",
+  amountOfStars: null,
+  recommendations: [],
+  findAlternative: [],
+  summaryOfReviews:
+    "Customers commonly cite noise cancellation, fit, and iPhone pairing as the main purchase drivers.",
+  primaryCategory: "AirPods",
+  createdAt: new Date(0),
+  updatedAt: new Date(0),
+};
+
 export default async function InventoryPage({ searchParams }: InventoryPageProps) {
   const params = await searchParams;
   const query = params.q?.trim() ?? "";
@@ -41,7 +72,13 @@ export default async function InventoryPage({ searchParams }: InventoryPageProps
   const sortKey = isInventorySortKey(params.sort) ? params.sort : "risk";
   const sortDirection = params.dir === "asc" ? "asc" : "desc";
   const pageSize = 10;
-  const products = await searchDemoProducts(query, 120).catch(() => []);
+  const [products, requestedProduct, airPodsProducts] = await Promise.all([
+    searchDemoProducts(query, 120).catch(() => []),
+    params.productId
+      ? getTargetProductById(params.productId).catch(() => null)
+      : Promise.resolve(null),
+    searchDemoProducts("airpods", 8).catch(() => []),
+  ]);
   const inventoryRows = products.map((product) => ({
     product,
     signals: deriveProductSignals(product),
@@ -55,13 +92,11 @@ export default async function InventoryPage({ searchParams }: InventoryPageProps
   const visibleRows = sortedRows.slice(startIndex, startIndex + pageSize);
   const displayStart = sortedRows.length === 0 ? 0 : startIndex + 1;
   const displayEnd = startIndex + visibleRows.length;
-  const airPodsProduct = products.find(isAirPodsProduct);
-  const selectedProduct =
-    (params.productId ? await getTargetProductById(params.productId).catch(() => null) : null) ??
-    airPodsProduct ??
-    visibleRows[0]?.product ??
-    sortedRows[0]?.product ??
-    null;
+  const defaultAirPodsProduct =
+    airPodsProducts.find(isAirPodsProduct) ??
+    products.find(isAirPodsProduct) ??
+    demoAirPodsProduct;
+  const selectedProduct = requestedProduct ?? defaultAirPodsProduct;
   const selectedSignals = selectedProduct ? deriveProductSignals(selectedProduct) : null;
   const highRiskCount = inventoryRows.filter(
     ({ signals }) => signals.inventoryRisk === "high",
@@ -87,7 +122,7 @@ export default async function InventoryPage({ searchParams }: InventoryPageProps
               Restock planning from seeded Target rows
             </h2>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--muted)]">
-              The MVP derives on-hand units, incoming stock, reorder points,
+              Prodact derives on-hand units, incoming stock, reorder points,
               sales velocity, and return risk from each seeded product. Sort the
               table like a spreadsheet to review the products that need action.
             </p>
