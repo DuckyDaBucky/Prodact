@@ -3,30 +3,28 @@ import {
   Clock3,
   ShoppingBag,
   Users,
-  type LucideIcon,
 } from "lucide-react";
 
-import { deriveProductSignals, formatCurrency, formatNumber, listDemoProducts } from "@/lib/demo-data";
+import {
+  deriveProductSignals,
+  formatCurrency,
+  formatNumber,
+  listDemoProducts,
+} from "@/lib/demo-data";
 
 function buildMetricCards(products: Awaited<ReturnType<typeof listDemoProducts>>) {
-  const revenue = products.reduce((total, product) => {
+  let revenue = 0;
+  let customers = 0;
+  let returns = 0;
+
+  for (const product of products) {
     const signals = deriveProductSignals(product);
     const price = Number.parseFloat(product.finalPrice ?? "0");
-    return total + signals.weeklySales * (Number.isFinite(price) ? price : 0);
-  }, 0);
-  const customers = products.reduce(
-    (total, product) => total + Math.round(deriveProductSignals(product).weeklySales * 0.72),
-    0,
-  );
-  const returns = products.reduce(
-    (total, product) =>
-      total +
-      Math.round(
-        deriveProductSignals(product).weeklySales *
-          (deriveProductSignals(product).returnRate / 100),
-      ),
-    0,
-  );
+
+    revenue += signals.weeklySales * (Number.isFinite(price) ? price : 0);
+    customers += Math.round(signals.weeklySales * 0.72);
+    returns += Math.round(signals.weeklySales * (signals.returnRate / 100));
+  }
 
   return [
     {
@@ -58,30 +56,38 @@ function buildMetricCards(products: Awaited<ReturnType<typeof listDemoProducts>>
 }
 
 const chartRows = [
-  { sales: 54, traffic: 28, returns: 16 },
-  { sales: 42, traffic: 35, returns: 22 },
-  { sales: 37, traffic: 31, returns: 19 },
-  { sales: 61, traffic: 49, returns: 33 },
-  { sales: 47, traffic: 36, returns: 24 },
-  { sales: 58, traffic: 52, returns: 34 },
-  { sales: 44, traffic: 41, returns: 26 },
-  { sales: 68, traffic: 56, returns: 38 },
+  { month: "Jan", lastYear: 54, thisYear: 61, competitor: 49 },
+  { month: "Feb", lastYear: 42, thisYear: 58, competitor: 46 },
+  { month: "Mar", lastYear: 37, thisYear: 63, competitor: 52 },
+  { month: "Apr", lastYear: 61, thisYear: 72, competitor: 57 },
+  { month: "May", lastYear: 47, thisYear: 68, competitor: 59 },
+  { month: "Jun", lastYear: 58, thisYear: 77, competitor: 64 },
+  { month: "Jul", lastYear: 44, thisYear: 73, competitor: 61 },
+  { month: "Aug", lastYear: 68, thisYear: 84, competitor: 69 },
 ];
-
-const chartLabels = ["W1", "W2", "W3", "W4", "W5", "W6", "W7", "W8"];
+const chartMax = 90;
+const yAxisTicks = [0, 30, 60, 90];
 
 function TrendChart() {
   const width = 620;
-  const height = 260;
-  const pad = 28;
-  const step = (width - pad * 2) / (chartRows.length - 1);
+  const height = 300;
+  const padLeft = 64;
+  const padRight = 28;
+  const padTop = 28;
+  const padBottom = 52;
+  const chartWidth = width - padLeft - padRight;
+  const chartHeight = height - padTop - padBottom;
+  const step = chartWidth / (chartRows.length - 1);
+  const getPoint = (value: number, index: number) => ({
+    x: padLeft + index * step,
+    y: padTop + chartHeight - (value / chartMax) * chartHeight,
+  });
 
   const line = (values: number[]) =>
     values
       .map((value, index) => {
-        const x = pad + index * step;
-        const y = height - pad - (value / 80) * (height - pad * 2);
-        return `${index === 0 ? "M" : "L"} ${x} ${y}`;
+        const point = getPoint(value, index);
+        return `${index === 0 ? "M" : "L"} ${point.x} ${point.y}`;
       })
       .join(" ");
 
@@ -90,67 +96,120 @@ function TrendChart() {
       viewBox={`0 0 ${width} ${height}`}
       className="h-full w-full"
       role="img"
-      aria-label="Sales performance chart"
+      aria-label="Monthly money earned chart comparing last year, this year, and competitor sales"
     >
-      {[0, 1, 2, 3, 4].map((row) => {
-        const y = pad + row * ((height - pad * 2) / 4);
+      <text
+        x={width / 2}
+        y={height - 8}
+        textAnchor="middle"
+        fontSize="11"
+        fontWeight="600"
+        fill="rgba(107, 114, 128, 1)"
+      >
+        Months
+      </text>
+      <text
+        x="14"
+        y={height / 2}
+        textAnchor="middle"
+        transform={`rotate(-90 14 ${height / 2})`}
+        fontSize="11"
+        fontWeight="600"
+        fill="rgba(107, 114, 128, 1)"
+      >
+        Money earned ($K)
+      </text>
+
+      {yAxisTicks.map((tick) => {
+        const y = padTop + chartHeight - (tick / chartMax) * chartHeight;
 
         return (
-          <line
-            key={row}
-            x1={pad}
-            y1={y}
-            x2={width - pad}
-            y2={y}
-            stroke="rgba(15, 23, 42, 0.06)"
-            strokeWidth="1"
-          />
+          <g key={tick}>
+            <line
+              x1={padLeft}
+              y1={y}
+              x2={width - padRight}
+              y2={y}
+              stroke="rgba(15, 23, 42, 0.06)"
+              strokeWidth="1"
+            />
+            <text
+              x={padLeft - 10}
+              y={y + 4}
+              textAnchor="end"
+              fontSize="10"
+              fill="rgba(107, 114, 128, 1)"
+            >
+              ${tick}K
+            </text>
+          </g>
         );
       })}
-      {chartLabels.map((label, index) => {
-        const x = pad + index * step;
+      <line
+        x1={padLeft}
+        y1={padTop + chartHeight}
+        x2={width - padRight}
+        y2={padTop + chartHeight}
+        stroke="rgba(15, 23, 42, 0.16)"
+      />
+      <line
+        x1={padLeft}
+        y1={padTop}
+        x2={padLeft}
+        y2={padTop + chartHeight}
+        stroke="rgba(15, 23, 42, 0.16)"
+      />
+
+      {chartRows.map((row, index) => {
+        const x = padLeft + index * step;
         return (
           <text
-            key={label}
+            key={row.month}
             x={x}
-            y={height - 6}
+            y={height - 31}
             textAnchor="middle"
             fontSize="10"
             fill="rgba(107, 114, 128, 1)"
           >
-            {label}
+            {row.month}
           </text>
         );
       })}
       <path
-        d={line(chartRows.map((row) => row.traffic))}
+        d={line(chartRows.map((row) => row.lastYear))}
         fill="none"
-        stroke="rgba(107, 114, 128, 0.55)"
+        stroke="rgba(107, 114, 128, 0.75)"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+      <path
+        d={line(chartRows.map((row) => row.competitor))}
+        fill="none"
+        stroke="rgba(245, 158, 11, 0.88)"
         strokeWidth="2"
         strokeLinecap="round"
         strokeDasharray="4 4"
       />
       <path
-        d={line(chartRows.map((row) => row.returns))}
-        fill="none"
-        stroke="rgba(245, 158, 11, 0.7)"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeDasharray="4 4"
-      />
-      <path
-        d={line(chartRows.map((row) => row.sales))}
+        d={line(chartRows.map((row) => row.thisYear))}
         fill="none"
         stroke="#cc0000"
         strokeWidth="2.5"
         strokeLinecap="round"
       />
       {chartRows.map((row, index) => {
-        const x = pad + index * step;
-        const y = height - pad - (row.sales / 80) * (height - pad * 2);
+        const point = getPoint(row.thisYear, index);
 
         return (
-          <circle key={index} cx={x} cy={y} r="3.5" fill="white" stroke="#cc0000" strokeWidth="2" />
+          <circle
+            key={row.month}
+            cx={point.x}
+            cy={point.y}
+            r="3.5"
+            fill="white"
+            stroke="#cc0000"
+            strokeWidth="2"
+          />
         );
       })}
     </svg>
@@ -273,24 +332,34 @@ export default async function StorePerformancePage() {
         })}
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
-        <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-card)]">
+      <div className="grid gap-4 xl:grid-cols-[180px_minmax(0,1fr)]">
+        <aside className="rounded-2xl border border-[var(--border)] bg-[var(--surface-subtle)] p-3 shadow-[var(--shadow-sm)]">
+          <p className="px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--muted-strong)]">
+            Store views
+          </p>
+          <div className="mt-2 rounded-lg bg-[var(--surface)] px-3 py-2 text-sm font-semibold text-[var(--target-ink)] shadow-[var(--shadow-sm)]">
+            Overview
+          </div>
+        </aside>
+
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
+          <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-card)]">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--target-red)]">
                 Trend
               </p>
               <h2 className="mt-0.5 text-base font-semibold text-[var(--target-ink)]">
-                Sales performance
+                Monthly money earned
               </h2>
             </div>
             <div className="flex items-center gap-3 text-[11px] text-[var(--muted-strong)]">
-              <LegendDot color="#cc0000" label="Sales" solid />
-              <LegendDot color="rgba(107, 114, 128, 0.7)" label="Traffic" />
-              <LegendDot color="rgba(245, 158, 11, 0.8)" label="Returns" />
+              <LegendDot color="rgba(107, 114, 128, 0.75)" label="Last year" solid />
+              <LegendDot color="#cc0000" label="This year" solid />
+              <LegendDot color="rgba(245, 158, 11, 0.88)" label="Competitor sales" />
             </div>
           </div>
-          <div className="mt-4 h-[280px] rounded-lg border border-[var(--border)] bg-[var(--surface-subtle)] p-3">
+          <div className="mt-4 h-[320px] rounded-lg border border-[var(--border)] bg-[var(--surface-subtle)] p-3">
             <TrendChart />
           </div>
         </section>
@@ -331,6 +400,7 @@ export default async function StorePerformancePage() {
             ) : null}
           </ol>
         </aside>
+        </div>
       </div>
     </section>
   );

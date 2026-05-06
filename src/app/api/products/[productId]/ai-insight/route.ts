@@ -29,8 +29,15 @@ export async function GET(_request: Request, context: RouteContext) {
     recommendationResult?.recommendations ?? [],
   );
 
-  return Response.json({
-    productId: product.productId,
-    insight,
-  });
+  return Response.json(
+    {
+      productId: product.productId,
+      insight,
+    },
+    {
+      headers: {
+        "Cache-Control": "private, no-store",
+      },
+    },
+  );
 }

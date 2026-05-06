@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 
-import { ProductAiInsightPanel } from "@/components/product-ai-insight";
+import { ProductAiInsightLoader } from "@/components/product-ai-insight-loader";
 import { ProductPicker } from "@/components/product-picker";
-import { generateProductAiInsight } from "@/lib/gemini";
 import {
   getFirstTargetProduct,
   getLatestRecommendationRun,
@@ -17,6 +16,13 @@ type ProductAnalysisPageProps = {
     productId?: string;
   }>;
 };
+
+const numberFormatter = new Intl.NumberFormat("en-US");
+const timestampFormatter = new Intl.DateTimeFormat("en-US", {
+  dateStyle: "medium",
+  timeStyle: "short",
+});
+const currencyFormatters = new Map<string, Intl.NumberFormat>();
 
 function formatCurrency(amount: string | null, currency: string | null) {
   if (!amount) {
@@ -34,22 +40,25 @@ function formatCurrency(amount: string | null, currency: string | null) {
     !normalizedCurrency || normalizedCurrency === "$" || normalizedCurrency.length !== 3
       ? "USD"
       : normalizedCurrency;
+  let formatter = currencyFormatters.get(currencyCode);
 
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: currencyCode,
-  }).format(parsedAmount);
+  if (!formatter) {
+    formatter = new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: currencyCode,
+    });
+    currencyFormatters.set(currencyCode, formatter);
+  }
+
+  return formatter.format(parsedAmount);
 }
 
 function formatNumber(value: number | null) {
-  return new Intl.NumberFormat("en-US").format(value ?? 0);
+  return numberFormatter.format(value ?? 0);
 }
 
 function formatTimestamp(value: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(value);
+  return timestampFormatter.format(value);
 }
 
 function toNumber(value: string | null) {
@@ -125,7 +134,6 @@ export default async function ProductAnalysisPage({
 
   const { sourceProduct, recommendations, provider, generatedAt } = recommendationResult;
   const latestRun = await getLatestRecommendationRun(sourceProduct.productId).catch(() => null);
-  const aiInsight = await generateProductAiInsight(sourceProduct, recommendations);
   const discountPercent = calculateDiscountPercent(sourceProduct);
   const completeness = calculateCompleteness(sourceProduct);
   const strongMatches = recommendations.filter((recommendation) => recommendation.score >= 0.55);
@@ -377,14 +385,14 @@ export default async function ProductAnalysisPage({
             <p className="mt-1 text-xs leading-5 text-[var(--muted-strong)]">
               Generated with{" "}
               <span className="font-semibold text-[var(--target-ink)]">{provider}</span>{" "}
-              using seeded Target product data. Gemini insight provider:{" "}
-              <span className="font-semibold text-[var(--target-ink)]">{aiInsight.model}</span>
-              . Current request computed {formatTimestamp(generatedAt)}.
+              using seeded Target product data. Gemini insight loads through the protected
+              product insight API after the page is interactive. Current request computed{" "}
+              {formatTimestamp(generatedAt)}.
               {latestRun ? ` Latest stored run: ${formatTimestamp(latestRun.createdAt)}.` : ""}
             </p>
           </div>
 
-          <ProductAiInsightPanel insight={aiInsight} />
+          <ProductAiInsightLoader productId={sourceProduct.productId} />
         </div>
       </div>
     </section>

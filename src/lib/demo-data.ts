@@ -4,6 +4,9 @@ import { db } from "@/db";
 import { targetProduct } from "@/db/schema";
 import type { TargetProductRecord } from "@/lib/recommendations";
 
+const numberFormatter = new Intl.NumberFormat("en-US");
+const currencyFormatters = new Map<string, Intl.NumberFormat>();
+
 export type DemoProductSignals = {
   completeness: number;
   discountPercent: number | null;
@@ -58,15 +61,21 @@ export function formatCurrency(amount: string | number | null, currency: string 
     !normalizedCurrency || normalizedCurrency === "$" || normalizedCurrency.length !== 3
       ? "USD"
       : normalizedCurrency;
+  let formatter = currencyFormatters.get(currencyCode);
 
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: currencyCode,
-  }).format(parsedAmount);
+  if (!formatter) {
+    formatter = new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: currencyCode,
+    });
+    currencyFormatters.set(currencyCode, formatter);
+  }
+
+  return formatter.format(parsedAmount);
 }
 
 export function formatNumber(value: number | null | undefined) {
-  return new Intl.NumberFormat("en-US").format(value ?? 0);
+  return numberFormatter.format(value ?? 0);
 }
 
 export function calculateDiscountPercent(product: TargetProductRecord) {
@@ -116,15 +125,15 @@ export function deriveProductSignals(product: TargetProductRecord): DemoProductS
   const completeness = calculateCompleteness(product);
   const discountPercent = calculateDiscountPercent(product);
   const weeklySales = 36 + (hash % 420) + Math.min(260, Math.floor(reviewsCount / 18));
-  const stockOnHand = 18 + ((hash >> 3) % 240);
-  const incomingUnits = (hash >> 8) % 150;
+  const stockOnHand = 18 + ((hash >>> 3) % 240);
+  const incomingUnits = (hash >>> 8) % 150;
   const reorderPoint = Math.max(35, Math.round(weeklySales * 0.62));
   const salesFloorUnits = Math.round(stockOnHand * (0.48 + ((hash % 17) / 100)));
   const backroomUnits = Math.max(0, stockOnHand - salesFloorUnits);
-  const returnRate = Number((1.4 + ((hash >> 5) % 84) / 10).toFixed(1));
+  const returnRate = Number((1.4 + ((hash >>> 5) % 84) / 10).toFixed(1));
   const demandScore = Math.min(99, Math.round(weeklySales / 8 + (rating ?? 3.8) * 12));
   const competitorName = hash % 2 === 0 ? "Walmart" : "Amazon";
-  const competitorAdjustment = (((hash >> 9) % 17) - 8) / 100;
+  const competitorAdjustment = (((hash >>> 9) % 17) - 8) / 100;
   const competitorPrice = finalPrice
     ? Number((finalPrice * (1 + competitorAdjustment)).toFixed(2))
     : null;

@@ -1,4 +1,4 @@
-import { ArrowRight, Database, Sparkles } from "lucide-react";
+import { ArrowRight, Database } from "lucide-react";
 
 type PlaceholderPageProps = {
   title: string;
@@ -15,7 +15,6 @@ export function PlaceholderPage({
     <section className="space-y-6 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-card)] sm:p-8">
       <div className="space-y-3">
         <p className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--target-red)]">
-          <Sparkles className="h-3 w-3" />
           Future work surface
         </p>
         <div className="space-y-2">

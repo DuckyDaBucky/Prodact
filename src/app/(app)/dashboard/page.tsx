@@ -4,10 +4,9 @@ import {
   ChartColumnIncreasing,
   CircleDollarSign,
   Database,
+  type LucideIcon,
   Search,
   ShieldCheck,
-  Sparkles,
-  type LucideIcon,
 } from "lucide-react";
 
 import { cn } from "@/components/cn";
@@ -22,6 +21,8 @@ const budgetSegments = [
   { label: "Promotions", value: 19, color: "#fbb4b4" },
   { label: "Ops reserve", value: 15, color: "#3a3f4a" },
 ];
+const salesMin = Math.min(...salesData);
+const salesMax = Math.max(...salesData);
 
 const quickCards = [
   {
@@ -84,8 +85,10 @@ function buildServiceCards(productCount: number, notificationCount: number, gemi
 }
 
 export default async function DashboardPage() {
-  const session = await requireSession();
-  const products = await listDemoProducts(120).catch(() => []);
+  const [session, products] = await Promise.all([
+    requireSession(),
+    listDemoProducts(120).catch(() => []),
+  ]);
   const notifications = deriveNotifications(products);
   const geminiReady = Boolean(process.env.GEMINI_API_KEY?.trim());
   const serviceCards = buildServiceCards(products.length, notifications.length, geminiReady);
@@ -126,7 +129,6 @@ export default async function DashboardPage() {
               </div>
               <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm">
                 <p className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--target-red)]">
-                  <Sparkles className="h-3 w-3" />
                   Today&rsquo;s AI focus
                 </p>
                 <p className="mt-1 text-sm text-[var(--target-ink)]">
@@ -256,7 +258,7 @@ export default async function DashboardPage() {
 
                   {salesData.map((point, index) => {
                     const x = 56 + index * ((472 - 56) / (salesData.length - 1));
-                    const y = mapValue(point, Math.min(...salesData), Math.max(...salesData), 210, 44);
+                    const y = mapValue(point, salesMin, salesMax, 210, 44);
 
                     return (
                       <circle

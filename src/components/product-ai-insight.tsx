@@ -1,4 +1,4 @@
-import { Bot, CheckCircle2, Sparkles, TriangleAlert } from "lucide-react";
+import { Bot, CheckCircle2, Cpu, TriangleAlert } from "lucide-react";
 
 import type { ProductAiInsight } from "@/lib/gemini";
 
@@ -22,7 +22,7 @@ export function ProductAiInsightPanel({ insight }: ProductAiInsightPanelProps) {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1.5">
           <p className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--target-red)]">
-            <Sparkles className="h-3 w-3" />
+            <Cpu className="h-3 w-3" />
             {processedByGemini ? "Processed by Gemini" : "Fallback AI insight"}
           </p>
           <h3 className="text-lg font-semibold tracking-tight text-[var(--target-ink)]">

@@ -1,15 +1,14 @@
 import Link from "next/link";
-import { ArrowUpRight, Search, Sparkles, Star } from "lucide-react";
+import { ArrowUpRight, Search } from "lucide-react";
 
-import { ProductAiInsightPanel } from "@/components/product-ai-insight";
+import { ProductAiInsightLoader } from "@/components/product-ai-insight-loader";
 import {
   deriveProductSignals,
   formatCurrency,
   formatNumber,
   searchDemoProducts,
 } from "@/lib/demo-data";
-import { generateProductAiInsight } from "@/lib/gemini";
-import { getTargetProductById, recommendationService } from "@/lib/recommendations";
+import { getTargetProductById } from "@/lib/recommendations";
 
 type SearchPageProps = {
   searchParams: Promise<{
@@ -21,22 +20,16 @@ type SearchPageProps = {
 export default async function ProductSearchPage({ searchParams }: SearchPageProps) {
   const params = await searchParams;
   const query = params.q?.trim() ?? "";
-  const products = await searchDemoProducts(query, 36).catch(() => []);
+  const productsPromise = searchDemoProducts(query, 36).catch(() => []);
+  const requestedProductPromise = params.productId
+    ? getTargetProductById(params.productId).catch(() => null)
+    : Promise.resolve(null);
+  const [products, requestedProduct] = await Promise.all([
+    productsPromise,
+    requestedProductPromise,
+  ]);
   const selectedProduct =
-    (params.productId ? await getTargetProductById(params.productId).catch(() => null) : null) ??
-    products[0] ??
-    null;
-  const recommendationResult = selectedProduct
-    ? await recommendationService
-        .recommend(selectedProduct.productId, { limit: 5, persist: false })
-        .catch(() => null)
-    : null;
-  const insight = selectedProduct
-    ? await generateProductAiInsight(
-        selectedProduct,
-        recommendationResult?.recommendations ?? [],
-      )
-    : null;
+    requestedProduct ?? products[0] ?? null;
 
   return (
     <section className="space-y-5">
@@ -55,8 +48,7 @@ export default async function ProductSearchPage({ searchParams }: SearchPageProp
               through Gemini for live demo analysis.
             </p>
           </div>
-          <span className="inline-flex items-center gap-1.5 rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
-            <Sparkles className="h-3.5 w-3.5" />
+          <span className="inline-flex items-center rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
             Gemini-ready
           </span>
         </div>
@@ -132,8 +124,7 @@ export default async function ProductSearchPage({ searchParams }: SearchPageProp
                     </span>
                   </div>
                   <div className="mt-2.5 flex flex-wrap items-center gap-1.5 text-[11px]">
-                    <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-2 py-0.5 font-medium text-amber-700">
-                      <Star className="h-3 w-3 fill-amber-500 text-amber-500" />
+                    <span className="rounded-md bg-amber-50 px-2 py-0.5 font-medium text-amber-700">
                       {product.rating ?? "n/a"}
                     </span>
                     <span className="rounded-md bg-[var(--surface-subtle)] px-2 py-0.5 text-[var(--muted-strong)]">
@@ -161,7 +152,7 @@ export default async function ProductSearchPage({ searchParams }: SearchPageProp
         </section>
 
         <div className="space-y-4">
-          {selectedProduct && insight ? (
+          {selectedProduct ? (
             <>
               <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-card)]">
                 <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--target-red)]">
@@ -196,7 +187,7 @@ export default async function ProductSearchPage({ searchParams }: SearchPageProp
                 </div>
               </section>
 
-              <ProductAiInsightPanel insight={insight} />
+              <ProductAiInsightLoader productId={selectedProduct.productId} />
             </>
           ) : (
             <div className="rounded-2xl border border-dashed border-[var(--border-strong)] bg-[var(--surface-subtle)] p-6 text-sm leading-6 text-[var(--muted)]">
