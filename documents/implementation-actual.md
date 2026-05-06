@@ -46,7 +46,7 @@
 - The API layer exposes recommendations through `src/app/api/recommendations/[productId]/route.ts`.
 - The UI surface for this feature is the updated `src/app/(app)/product-analysis/page.tsx`, which reads seeded products and renders explainable recommendations for a selected SKU.
 
-## PA4 MVP Service Mapping
+## Final Demo Service Mapping
 
 - Web Scraper Service:
   `scripts/seed-target-products.ts` is the reliable scraping and ingestion MVP. It downloads the public Target product dataset, parses CSV rows, normalizes product attributes, and upserts batches into Postgres. It avoids brittle live page scraping while still proving repeatable external-data ingestion.
@@ -59,9 +59,9 @@
 - Notification Service:
   `/alerts` uses `src/lib/demo-data.ts` to derive product, restock, pricing, and data-quality notifications from seeded Target rows without adding schema risk.
 - Demo Evidence:
-  `/dashboard` includes PA4 MVP service cards, `/search` demonstrates professor-facing product lookup with Gemini insight, and `/product-analysis` demonstrates Database, Gemini, recommendation persistence, and explainable fallback behavior.
+  `/dashboard` includes final demo service cards, `/search` demonstrates professor-facing product lookup with Gemini insight, and `/product-analysis` demonstrates Database, Gemini, recommendation persistence, and explainable fallback behavior.
 
-## Test Cases for PA4 Evidence
+## Test Cases for Demo Evidence
 
 - Web Scraper: run `npm run db:seed` and verify the console reports processed, inserted, updated, skipped, and elapsed counts.
 - Database: run `npm run db:migrate`, then confirm Product Analysis can read seeded records from `target_product`.

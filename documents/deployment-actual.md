@@ -33,7 +33,7 @@
 - Demo account setup is available through `/internal-signup`.
 - Protected feature pages, including the seeded Product Analysis route, are available only after authentication.
 
-## PA4 MVP Verification
+## Final Demo Verification
 
 - Web Scraper Service:
   `npm run db:seed` downloads or imports the Target dataset, normalizes rows, and reports processed, inserted, updated, skipped, and elapsed counts.

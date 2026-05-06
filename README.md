@@ -1,6 +1,6 @@
 # Prodact Internal Tool Boilerplate
 
-Prodact is the Group 10 PA4 starter application for a Target-style internal product intelligence tool. This repository is intentionally scoped as a clean foundation, not a full analytics product. The goal of this codebase is to give the team a working shell with authentication, route protection, database wiring, branding, and placeholder feature pages so later work can focus on the actual business features.
+Prodact is the Group 10 final demo application for a Target-style internal product intelligence tool. This repository is intentionally scoped as a clean foundation, not a full analytics product. The goal of this codebase is to give the team a working shell with authentication, route protection, database wiring, branding, and feature pages backed by seeded product data.
 
 ## What This Repo Already Does
 
@@ -10,7 +10,7 @@ Prodact is the Group 10 PA4 starter application for a Target-style internal prod
 - Seeds Target sample product data into Neon with a repeatable Web Scraper Service script
 - Protects internal pages behind session checks
 - Includes a branded internal app shell with sidebar and logout
-- Shows PA4 MVP service cards on the dashboard
+- Shows final demo service cards on the dashboard
 - Exposes Search and Product Analysis pages with Gemini-backed product insights
 - Uses deterministic fallback analysis when Gemini is not configured or unavailable
 - Uses seeded Target rows to drive inventory, notifications, store, competitor, and layout demo surfaces
@@ -25,7 +25,7 @@ Prodact is the Group 10 PA4 starter application for a Target-style internal prod
 
 This is deliberate. The repo is meant to remove setup friction first.
 
-## PA4 MVP Services
+## Final Demo Services
 
 - Web Scraper Service:
   `scripts/seed-target-products.ts` downloads the Target product CSV, parses and normalizes rows, and upserts products into Postgres with repeatable console output.
@@ -82,7 +82,7 @@ The app is organized around three layers:
 ### Protected routes
 
 - `/dashboard`
-  - Includes PA4 MVP service cards for Web Scraper, Database, Authentication, and AI Recommendation
+  - Includes final demo service cards for Web Scraper, Database, Authentication, and AI Recommendation
 - `/search`
   - Searches seeded Target products and runs Gemini-backed product insight for the selected result
 - `/inventory`

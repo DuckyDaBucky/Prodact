@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import {
   ArrowUpDown,
   Boxes,
@@ -41,11 +42,6 @@ export default async function InventoryPage({ searchParams }: InventoryPageProps
   const sortDirection = params.dir === "asc" ? "asc" : "desc";
   const pageSize = 10;
   const products = await searchDemoProducts(query, 120).catch(() => []);
-  const selectedProduct =
-    (params.productId ? await getTargetProductById(params.productId).catch(() => null) : null) ??
-    products[0] ??
-    null;
-  const selectedSignals = selectedProduct ? deriveProductSignals(selectedProduct) : null;
   const inventoryRows = products.map((product) => ({
     product,
     signals: deriveProductSignals(product),
@@ -59,6 +55,12 @@ export default async function InventoryPage({ searchParams }: InventoryPageProps
   const visibleRows = sortedRows.slice(startIndex, startIndex + pageSize);
   const displayStart = sortedRows.length === 0 ? 0 : startIndex + 1;
   const displayEnd = startIndex + visibleRows.length;
+  const selectedProduct =
+    (params.productId ? await getTargetProductById(params.productId).catch(() => null) : null) ??
+    visibleRows[0]?.product ??
+    sortedRows[0]?.product ??
+    null;
+  const selectedSignals = selectedProduct ? deriveProductSignals(selectedProduct) : null;
   const highRiskCount = inventoryRows.filter(
     ({ signals }) => signals.inventoryRisk === "high",
   ).length;
@@ -420,6 +422,46 @@ function SignalRow({ label, value }: { label: string; value: string }) {
   );
 }
 
+function SortableHeader({
+  children,
+  className,
+  query,
+  sortKey,
+  activeSortKey,
+  direction,
+}: {
+  children: ReactNode;
+  className: string;
+  query: string;
+  sortKey: InventorySortKey;
+  activeSortKey: InventorySortKey;
+  direction: "asc" | "desc";
+}) {
+  const isActive = sortKey === activeSortKey;
+  const nextDirection = isActive && direction === "desc" ? "asc" : "desc";
+
+  return (
+    <th className={className}>
+      <Link
+        className="inline-flex items-center gap-1.5 transition hover:text-[var(--target-red)]"
+        href={buildInventoryHref({
+          query,
+          page: 1,
+          sortKey,
+          sortDirection: nextDirection,
+        })}
+      >
+        {children}
+        <ArrowUpDown
+          className={`h-3.5 w-3.5 ${
+            isActive ? "text-[var(--target-red)]" : "text-[var(--muted)]"
+          }`}
+        />
+      </Link>
+    </th>
+  );
+}
+
 function riskClassName(risk: "low" | "medium" | "high") {
   const base = "inline-flex w-fit rounded-md px-2 py-0.5 text-[11px] font-medium capitalize";
 
@@ -432,6 +474,123 @@ function riskClassName(risk: "low" | "medium" | "high") {
   }
 
   return `${base} bg-emerald-50 text-emerald-700`;
+}
+
+function riskExplanation(
+  risk: "low" | "medium" | "high",
+  stockOnHand: number,
+  reorderPoint: number,
+  weeklySales: number,
+) {
+  if (risk === "high") {
+    return `High risk because ${stockOnHand} units are on hand, below 65% of the ${reorderPoint} reorder point. Weekly movement is ${weeklySales}.`;
+  }
+
+  if (risk === "medium") {
+    return `Medium risk because ${stockOnHand} units are below the ${reorderPoint} reorder point, but not yet below the high-risk threshold. Weekly movement is ${weeklySales}.`;
+  }
+
+  return `Low risk because ${stockOnHand} units meet or exceed the ${reorderPoint} reorder point. Weekly movement is ${weeklySales}.`;
+}
+
+function compareInventoryRows(
+  left: {
+    product: Awaited<ReturnType<typeof searchDemoProducts>>[number];
+    signals: ReturnType<typeof deriveProductSignals>;
+  },
+  right: {
+    product: Awaited<ReturnType<typeof searchDemoProducts>>[number];
+    signals: ReturnType<typeof deriveProductSignals>;
+  },
+  sortKey: InventorySortKey,
+  direction: "asc" | "desc",
+) {
+  const multiplier = direction === "asc" ? 1 : -1;
+  let result = 0;
+
+  if (sortKey === "product") {
+    result = left.product.title.localeCompare(right.product.title);
+  } else if (sortKey === "stock") {
+    result = left.signals.stockOnHand - right.signals.stockOnHand;
+  } else if (sortKey === "incoming") {
+    result = left.signals.incomingUnits - right.signals.incomingUnits;
+  } else if (sortKey === "reorder") {
+    result = left.signals.reorderPoint - right.signals.reorderPoint;
+  } else if (sortKey === "movement") {
+    result = left.signals.weeklySales - right.signals.weeklySales;
+  } else {
+    result =
+      riskSortValue(left.signals.inventoryRisk) - riskSortValue(right.signals.inventoryRisk);
+  }
+
+  if (result === 0) {
+    result = left.product.title.localeCompare(right.product.title);
+  }
+
+  return result * multiplier;
+}
+
+function riskSortValue(risk: "low" | "medium" | "high") {
+  if (risk === "high") {
+    return 3;
+  }
+
+  if (risk === "medium") {
+    return 2;
+  }
+
+  return 1;
+}
+
+function isInventorySortKey(value: string | undefined): value is InventorySortKey {
+  return (
+    value === "product" ||
+    value === "stock" ||
+    value === "incoming" ||
+    value === "reorder" ||
+    value === "movement" ||
+    value === "risk"
+  );
+}
+
+function buildInventoryHref({
+  query,
+  page,
+  sortKey,
+  sortDirection,
+  productId,
+}: {
+  query: string;
+  page: number;
+  sortKey: InventorySortKey;
+  sortDirection: "asc" | "desc";
+  productId?: string;
+}) {
+  const params = new URLSearchParams();
+
+  if (query) {
+    params.set("q", query);
+  }
+
+  if (page > 1) {
+    params.set("page", String(page));
+  }
+
+  if (sortKey !== "risk") {
+    params.set("sort", sortKey);
+  }
+
+  if (sortDirection !== "desc") {
+    params.set("dir", sortDirection);
+  }
+
+  if (productId) {
+    params.set("productId", productId);
+  }
+
+  const queryString = params.toString();
+
+  return queryString ? `/inventory?${queryString}` : "/inventory";
 }
 
 function AirPodsPreview() {
