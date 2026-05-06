@@ -19,7 +19,7 @@ import {
   formatNumber,
   searchDemoProducts,
 } from "@/lib/demo-data";
-import { getTargetProductById } from "@/lib/recommendations";
+import { getTargetProductById, type TargetProductRecord } from "@/lib/recommendations";
 
 type InventoryPageProps = {
   searchParams: Promise<{
@@ -55,8 +55,10 @@ export default async function InventoryPage({ searchParams }: InventoryPageProps
   const visibleRows = sortedRows.slice(startIndex, startIndex + pageSize);
   const displayStart = sortedRows.length === 0 ? 0 : startIndex + 1;
   const displayEnd = startIndex + visibleRows.length;
+  const airPodsProduct = products.find(isAirPodsProduct);
   const selectedProduct =
     (params.productId ? await getTargetProductById(params.productId).catch(() => null) : null) ??
+    airPodsProduct ??
     visibleRows[0]?.product ??
     sortedRows[0]?.product ??
     null;
@@ -331,7 +333,7 @@ export default async function InventoryPage({ searchParams }: InventoryPageProps
         <aside className="space-y-4">
           {selectedProduct && selectedSignals ? (
             <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-card)]">
-              <AirPodsPreview />
+              <ProductPreview product={selectedProduct} />
 
               <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--target-red)]">
                 Selected SKU
@@ -591,6 +593,34 @@ function buildInventoryHref({
   const queryString = params.toString();
 
   return queryString ? `/inventory?${queryString}` : "/inventory";
+}
+
+function isAirPodsProduct(product: TargetProductRecord) {
+  return /airpods/i.test(product.title) || /airpods/i.test(product.primaryCategory ?? "");
+}
+
+function ProductPreview({ product }: { product: TargetProductRecord }) {
+  if (isAirPodsProduct(product)) {
+    return <AirPodsPreview />;
+  }
+
+  return (
+    <div className="mb-5 overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface-subtle)] px-5 py-4">
+      <div className="mx-auto flex h-40 w-full max-w-[220px] items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--surface)]">
+        <div className="px-4 text-center">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--muted)]">
+            Selected SKU
+          </p>
+          <p className="mt-2 line-clamp-3 text-sm font-semibold text-[var(--target-ink)]">
+            {product.primaryCategory ?? "Inventory item"}
+          </p>
+        </div>
+      </div>
+      <p className="mt-3 text-center text-xs font-medium text-[var(--muted-strong)]">
+        Selected product preview
+      </p>
+    </div>
+  );
 }
 
 function AirPodsPreview() {
