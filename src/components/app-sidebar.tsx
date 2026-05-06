@@ -60,7 +60,9 @@ export function AppSidebar({ employeeId, role }: AppSidebarProps) {
               <Icon
                 className={cn(
                   "h-4 w-4 shrink-0",
-                  isActive
+                  item.href === "/messages"
+                    ? "text-[var(--target-red)]"
+                    : isActive
                     ? "text-[var(--target-red)]"
                     : "text-[var(--muted)] group-hover:text-[var(--target-ink)]",
                 )}

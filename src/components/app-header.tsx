@@ -14,18 +14,15 @@ export function AppHeader({ session }: AppHeaderProps) {
   const initials = getInitials(displayName);
 
   return (
-    <header className="flex flex-col gap-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-5 py-4 shadow-[var(--shadow-card)] lg:flex-row lg:items-center lg:justify-between">
-      <div className="min-w-0 space-y-1.5">
+    <header className="flex flex-col gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 shadow-[var(--shadow-sm)] lg:flex-row lg:items-center lg:justify-between">
+      <div className="min-w-0 space-y-1">
         <div className="inline-flex items-center gap-1.5 rounded-md bg-[var(--target-red-soft)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--target-red)]">
           <ShieldCheck className="h-3 w-3" />
           Internal access
         </div>
-        <h1 className="font-[family-name:var(--font-heading)] text-xl font-semibold tracking-tight text-[var(--target-ink)]">
+        <h1 className="font-[family-name:var(--font-heading)] text-lg font-semibold tracking-tight text-[var(--target-ink)]">
           Welcome back, {displayName}
         </h1>
-        <p className="text-sm text-[var(--muted)]">
-          Today&rsquo;s product intelligence summary is ready for review.
-        </p>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -34,7 +31,7 @@ export function AppHeader({ session }: AppHeaderProps) {
           className="hidden items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface-subtle)] px-3 py-2 text-sm text-[var(--muted)] transition hover:border-[var(--border-strong)] hover:text-[var(--target-ink)] sm:inline-flex"
         >
           <Search className="h-4 w-4" />
-          <span>Search products</span>
+          Search
         </Link>
         <Link
           href="/alerts"

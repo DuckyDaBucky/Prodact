@@ -39,14 +39,24 @@ type GeminiInsightPayload = {
 type WorkspaceAssistantContext = {
   productCount: number;
   alertCount: number;
+  highRiskCount: number;
+  matchedProductCount: number;
   featureAreas: string[];
+  featureRoutes: Array<{
+    route: string;
+    purpose: string;
+  }>;
   sampleProducts: Array<{
+    productId: string;
     title: string;
     category: string | null;
     price: string | null;
     rating: string | null;
     reviewsCount: number | null;
     inventoryRisk: string;
+    stockOnHand: number;
+    reorderPoint: number;
+    weeklySales: number;
   }>;
 };
 
@@ -227,6 +237,9 @@ function buildWorkspacePrompt(question: string, context: WorkspaceAssistantConte
   return `You are Prodact's internal demo assistant for a software engineering MVP.
 Answer using only the supplied app context. Be concise, concrete, and honest about demo-derived data.
 If a feature is demo-only, say it is demo-derived rather than live enterprise integration.
+When the user asks about a product, prioritize matchedProductCount and sampleProducts.
+When citing app behavior, cite the relevant feature route from featureRoutes.
+Do not invent products, prices, stock counts, routes, or integrations not present in context.
 
 User question:
 ${question}
@@ -243,7 +256,7 @@ function buildWorkspaceFallback(
   const featureList = context.featureAreas.join(", ");
   const sample = context.sampleProducts[0];
   const sampleText = sample
-    ? ` Example seeded product: ${sample.title} (${sample.category ?? "uncategorized"}) with ${sample.inventoryRisk} inventory risk.`
+    ? ` Best matched seeded product: ${sample.title} (${sample.category ?? "uncategorized"}) with ${sample.stockOnHand} on hand, reorder point ${sample.reorderPoint}, and ${sample.inventoryRisk} inventory risk.`
     : "";
 
   return {
@@ -253,7 +266,9 @@ function buildWorkspaceFallback(
       context.productCount,
     )} seeded Target products and ${formatNumber(
       context.alertCount,
-    )} derived alerts. For your question, "${question}", use the Search, Product Analysis, Inventory, Competitor Analysis, Store Performance, Notifications, and Messages pages as the main evidence surfaces.${sampleText}`,
+    )} derived alerts, with ${formatNumber(
+      context.highRiskCount,
+    )} high-risk inventory rows in the current sample. For your question, "${question}", use the route map and matched database products as the main evidence.${sampleText}`,
     generatedAt: new Date().toISOString(),
   };
 }

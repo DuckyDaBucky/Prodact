@@ -5,7 +5,6 @@ import {
   Crosshair,
   LayoutDashboard,
   Search,
-  Send,
   Settings,
   Store,
 } from "lucide-react";
@@ -55,9 +54,9 @@ export const navItems = [
   },
   {
     href: "/messages",
-    label: "Messages",
-    description: "Search and review faculty conversations",
-    icon: Send,
+    label: "Prodact",
+    description: "Ask the DB-grounded Prodact assistant",
+    icon: Store,
   },
   {
     href: "/store-layout",

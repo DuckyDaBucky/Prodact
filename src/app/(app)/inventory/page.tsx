@@ -195,6 +195,8 @@ export default async function InventoryPage({ searchParams }: InventoryPageProps
         <aside className="space-y-4">
           {selectedProduct && selectedSignals ? (
             <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-card)]">
+              <AirPodsPreview />
+
               <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--target-red)]">
                 Selected SKU
               </p>
@@ -296,4 +298,72 @@ function riskClassName(risk: "low" | "medium" | "high") {
   }
 
   return `${base} bg-emerald-50 text-emerald-700`;
+}
+
+function AirPodsPreview() {
+  return (
+    <div className="mb-5 overflow-hidden rounded-xl border border-[var(--border)] bg-[radial-gradient(circle_at_top,#ffffff_0%,#f6f7fb_46%,#eef0f5_100%)] px-5 py-4">
+      <svg
+        viewBox="0 0 420 240"
+        className="mx-auto h-40 w-full max-w-[220px]"
+        aria-label="AirPods product visual"
+        role="img"
+      >
+        <defs>
+          <radialGradient id="airpodShellSmall" cx="35%" cy="25%" r="85%">
+            <stop offset="0%" stopColor="#ffffff" />
+            <stop offset="58%" stopColor="#f5f7fb" />
+            <stop offset="100%" stopColor="#e4e8f1" />
+          </radialGradient>
+          <linearGradient id="airpodStemSmall" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#ffffff" />
+            <stop offset="60%" stopColor="#edf1f7" />
+            <stop offset="100%" stopColor="#d8deea" />
+          </linearGradient>
+          <filter id="airpodShadowSmall" x="-20%" y="-20%" width="140%" height="160%">
+            <feDropShadow
+              dx="0"
+              dy="14"
+              stdDeviation="12"
+              floodColor="#94a3b8"
+              floodOpacity="0.22"
+            />
+          </filter>
+        </defs>
+
+        <g filter="url(#airpodShadowSmall)" transform="translate(60 18) scale(0.72)">
+          <g transform="rotate(-17 110 120)">
+            <path
+              d="M48 93c0-43 31-76 69-76 36 0 64 30 64 68 0 31-17 56-41 67-12 6-20 14-20 30v114c0 18-13 32-30 32-16 0-29-14-29-32V170c0-14-7-24-18-33C26 127 48 116 48 93Z"
+              fill="url(#airpodShellSmall)"
+            />
+            <ellipse cx="84" cy="95" rx="8" ry="8" fill="#3a3a3a" />
+            <ellipse
+              cx="132"
+              cy="61"
+              rx="16"
+              ry="5"
+              transform="rotate(-22 132 61)"
+              fill="#4b4b4b"
+            />
+            <rect x="68" y="170" width="44" height="154" rx="22" fill="url(#airpodStemSmall)" />
+          </g>
+
+          <g transform="translate(122 0)">
+            <path
+              d="M52 60c0-45 33-79 73-79 39 0 69 32 69 72 0 39-27 68-60 73-19 3-31 12-31 29v132c0 18-13 32-30 32s-30-14-30-32V60Z"
+              fill="url(#airpodShellSmall)"
+            />
+            <rect x="74" y="136" width="44" height="176" rx="22" fill="url(#airpodStemSmall)" />
+            <ellipse cx="99" cy="82" rx="23" ry="31" fill="#242424" />
+            <ellipse cx="99" cy="82" rx="16" ry="24" fill="#383838" />
+            <ellipse cx="62" cy="84" rx="5" ry="8" fill="#3d3d3d" />
+          </g>
+        </g>
+      </svg>
+      <p className="text-center text-xs font-medium text-[var(--muted-strong)]">
+        Product visual preview
+      </p>
+    </div>
+  );
 }
