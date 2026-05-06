@@ -34,10 +34,7 @@ export function AppHeader({ session }: AppHeaderProps) {
           className="hidden items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface-subtle)] px-3 py-2 text-sm text-[var(--muted)] transition hover:border-[var(--border-strong)] hover:text-[var(--target-ink)] sm:inline-flex"
         >
           <Search className="h-4 w-4" />
-          <span>Search products…</span>
-          <kbd className="ml-2 hidden rounded border border-[var(--border)] bg-white px-1.5 py-0.5 text-[10px] font-medium text-[var(--muted)] md:inline">
-            /
-          </kbd>
+          <span>Search products</span>
         </Link>
         <Link
           href="/alerts"

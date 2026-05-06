@@ -10,7 +10,7 @@ import {
   FileText,
   Settings,
   ShieldCheck,
-  Sparkles,
+  SlidersHorizontal,
   Store,
   UserRound,
   type LucideIcon,
@@ -106,7 +106,7 @@ const settingsGroups: SettingsGroup[] = [
         id: "ai-defaults",
         label: "AI analysis defaults",
         description: "Model behavior, thresholds, and summaries.",
-        icon: Sparkles,
+        icon: SlidersHorizontal,
       },
       {
         id: "notifications",
@@ -834,7 +834,6 @@ export default function SettingsPage() {
 
             <section className="rounded-xl border border-[var(--target-ink)] bg-[var(--target-ink)] p-5 text-white">
               <p className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-red-200">
-                <Sparkles className="h-3.5 w-3.5" />
                 AI workspace status
               </p>
               <p className="mt-3 text-base font-semibold tracking-tight">

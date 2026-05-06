@@ -1,4 +1,5 @@
 import { MessagesPanel } from "@/components/messages-panel";
+import { WorkspaceAssistant } from "@/components/workspace-assistant";
 import { getThread, listThreads } from "@/lib/messages";
 import { requireSession } from "@/lib/session";
 
@@ -10,10 +11,13 @@ export default async function MessagesPage() {
     : null;
 
   return (
-    <MessagesPanel
-      currentUserId={session.user.id}
-      initialThreads={threads}
-      initialActiveThread={initialActiveThread}
-    />
+    <section className="space-y-4">
+      <WorkspaceAssistant />
+      <MessagesPanel
+        currentUserId={session.user.id}
+        initialThreads={threads}
+        initialActiveThread={initialActiveThread}
+      />
+    </section>
   );
 }

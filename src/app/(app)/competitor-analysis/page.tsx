@@ -4,7 +4,6 @@ import {
   ChartColumnIncreasing,
   CircleDollarSign,
   MessageSquareText,
-  Sparkles,
   Store,
   TrendingUp,
   type LucideIcon,
@@ -134,7 +133,6 @@ export default async function CompetitorAnalysisPage() {
         <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
           <div className="flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1.5 rounded-md bg-[var(--target-red-soft)] px-2 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--target-red)]">
-              <Sparkles className="h-3.5 w-3.5" />
               AI competitor analysis
             </span>
             <span className="rounded-md border border-[var(--border)] bg-[var(--surface-subtle)] px-2 py-1 text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--muted-strong)]">
@@ -364,7 +362,6 @@ export default async function CompetitorAnalysisPage() {
 
             <div className="mt-4 rounded-lg border border-[var(--border)] bg-[var(--target-red-soft)] p-4">
               <p className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--target-red)]">
-                <Sparkles className="h-3 w-3" />
                 AI readout
               </p>
               <p className="mt-1.5 text-sm font-semibold text-[var(--target-ink)]">
@@ -514,7 +511,6 @@ export default async function CompetitorAnalysisPage() {
 
             <div className="mt-4 rounded-lg border border-[var(--border)] bg-[var(--target-red-soft)] p-4">
               <p className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--target-red)]">
-                <Sparkles className="h-3 w-3" />
                 AI readout
               </p>
               <p className="mt-1.5 text-sm font-semibold text-[var(--target-ink)]">
@@ -534,7 +530,7 @@ export default async function CompetitorAnalysisPage() {
                 label="Sentiment edge"
                 value={`+${Math.max(0.1, averageRating - 4).toFixed(1)} stars`}
               />
-              <SummaryCard icon={Sparkles} label="AI confidence" value="94%" />
+              <SummaryCard icon={ChartColumnIncreasing} label="AI confidence" value="94%" />
             </div>
           </article>
         </div>

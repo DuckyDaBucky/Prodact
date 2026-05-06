@@ -12,6 +12,13 @@ export type ProductAiInsight = {
   generatedAt: string;
 };
 
+export type WorkspaceAssistantReply = {
+  provider: "gemini" | "fallback";
+  model: string;
+  answer: string;
+  generatedAt: string;
+};
+
 type GeminiResponse = {
   candidates?: Array<{
     content?: {
@@ -27,6 +34,20 @@ type GeminiInsightPayload = {
   risks?: unknown;
   recommendationRationale?: unknown;
   nextActions?: unknown;
+};
+
+type WorkspaceAssistantContext = {
+  productCount: number;
+  alertCount: number;
+  featureAreas: string[];
+  sampleProducts: Array<{
+    title: string;
+    category: string | null;
+    price: string | null;
+    rating: string | null;
+    reviewsCount: number | null;
+    inventoryRisk: string;
+  }>;
 };
 
 function asStringArray(value: unknown) {
@@ -200,6 +221,123 @@ ${JSON.stringify(
   null,
   2,
 )}`;
+}
+
+function buildWorkspacePrompt(question: string, context: WorkspaceAssistantContext) {
+  return `You are Prodact's internal demo assistant for a software engineering MVP.
+Answer using only the supplied app context. Be concise, concrete, and honest about demo-derived data.
+If a feature is demo-only, say it is demo-derived rather than live enterprise integration.
+
+User question:
+${question}
+
+App context:
+${JSON.stringify(context, null, 2)}`;
+}
+
+function buildWorkspaceFallback(
+  question: string,
+  context: WorkspaceAssistantContext,
+  reason = "Gemini was unavailable, so Prodact used a deterministic fallback.",
+): WorkspaceAssistantReply {
+  const featureList = context.featureAreas.join(", ");
+  const sample = context.sampleProducts[0];
+  const sampleText = sample
+    ? ` Example seeded product: ${sample.title} (${sample.category ?? "uncategorized"}) with ${sample.inventoryRisk} inventory risk.`
+    : "";
+
+  return {
+    provider: "fallback",
+    model: "heuristic-demo",
+    answer: `${reason} Prodact currently covers ${featureList}. The demo has ${formatNumber(
+      context.productCount,
+    )} seeded Target products and ${formatNumber(
+      context.alertCount,
+    )} derived alerts. For your question, "${question}", use the Search, Product Analysis, Inventory, Competitor Analysis, Store Performance, Notifications, and Messages pages as the main evidence surfaces.${sampleText}`,
+    generatedAt: new Date().toISOString(),
+  };
+}
+
+export async function generateWorkspaceAssistantReply(
+  question: string,
+  context: WorkspaceAssistantContext,
+): Promise<WorkspaceAssistantReply> {
+  const apiKey = normalizeEnvValue(process.env.GEMINI_API_KEY, "");
+  const model = normalizeEnvValue(process.env.GEMINI_MODEL, "gemini-3-flash-preview");
+  const trimmedQuestion = question.trim().slice(0, 1200);
+
+  if (!trimmedQuestion) {
+    return buildWorkspaceFallback("What can Prodact do?", context, "No question was provided.");
+  }
+
+  if (!apiKey) {
+    return buildWorkspaceFallback(trimmedQuestion, context, "No Gemini API key is configured.");
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10_000);
+
+  try {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": apiKey,
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              role: "user",
+              parts: [{ text: buildWorkspacePrompt(trimmedQuestion, context) }],
+            },
+          ],
+          generationConfig: {
+            temperature: 0.25,
+            maxOutputTokens: 450,
+          },
+        }),
+        signal: controller.signal,
+      },
+    );
+
+    if (!response.ok) {
+      return buildWorkspaceFallback(
+        trimmedQuestion,
+        context,
+        `Gemini returned HTTP ${response.status}.`,
+      );
+    }
+
+    const data = (await response.json()) as GeminiResponse;
+    const answer =
+      data.candidates?.[0]?.content?.parts
+        ?.map((part) => part.text)
+        .filter((part): part is string => Boolean(part))
+        .join("\n")
+        .trim() ?? "";
+
+    if (!answer) {
+      return buildWorkspaceFallback(trimmedQuestion, context, "Gemini returned an empty response.");
+    }
+
+    return {
+      provider: "gemini",
+      model,
+      answer,
+      generatedAt: new Date().toISOString(),
+    };
+  } catch (error) {
+    const reason =
+      error instanceof Error && error.name === "AbortError"
+        ? "Gemini timed out."
+        : "Gemini request failed.";
+
+    return buildWorkspaceFallback(trimmedQuestion, context, reason);
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 export async function generateProductAiInsight(

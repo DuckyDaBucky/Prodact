@@ -32,15 +32,20 @@ export default async function InventoryPage({ searchParams }: InventoryPageProps
     products[0] ??
     null;
   const selectedSignals = selectedProduct ? deriveProductSignals(selectedProduct) : null;
-  const highRiskCount = products.filter(
-    (product) => deriveProductSignals(product).inventoryRisk === "high",
+  const inventoryRows = products.map((product) => ({
+    product,
+    signals: deriveProductSignals(product),
+  }));
+  const visibleRows = inventoryRows.slice(0, 12);
+  const highRiskCount = inventoryRows.filter(
+    ({ signals }) => signals.inventoryRisk === "high",
   ).length;
-  const incomingTotal = products.reduce(
-    (total, product) => total + deriveProductSignals(product).incomingUnits,
+  const incomingTotal = inventoryRows.reduce(
+    (total, { signals }) => total + signals.incomingUnits,
     0,
   );
-  const onHandTotal = products.reduce(
-    (total, product) => total + deriveProductSignals(product).stockOnHand,
+  const onHandTotal = inventoryRows.reduce(
+    (total, { signals }) => total + signals.stockOnHand,
     0,
   );
 
@@ -117,59 +122,73 @@ export default async function InventoryPage({ searchParams }: InventoryPageProps
               <h3 className="mt-0.5 text-base font-semibold text-[var(--target-ink)]">
                 Restock candidates
               </h3>
+              <p className="mt-1 text-xs text-[var(--muted)]">
+                Showing {visibleRows.length} of {products.length} filtered products
+              </p>
             </div>
             <span className="rounded-md border border-[var(--border)] bg-[var(--surface-subtle)] px-2 py-1 text-[11px] font-medium text-[var(--muted-strong)]">
               Demo-derived
             </span>
           </div>
 
-          <div className="overflow-hidden">
-            <div className="grid grid-cols-[1.4fr_0.7fr_0.7fr_0.7fr_0.7fr] border-b border-[var(--border)] bg-[var(--surface-subtle)] px-5 py-2.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--muted-strong)]">
-              <span>Product</span>
-              <span>On hand</span>
-              <span>Incoming</span>
-              <span>Weekly sales</span>
-              <span>Risk</span>
-            </div>
-            <div className="divide-y divide-[var(--border)]">
-              {products.map((product) => {
-                const signals = deriveProductSignals(product);
-                const selected = product.productId === selectedProduct?.productId;
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[760px] text-sm">
+              <thead className="border-b border-[var(--border)] bg-[var(--surface-subtle)] text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--muted-strong)]">
+                <tr>
+                  <th className="px-5 py-2.5">Product</th>
+                  <th className="px-3 py-2.5">Stock</th>
+                  <th className="px-3 py-2.5">Reorder</th>
+                  <th className="px-3 py-2.5">Movement</th>
+                  <th className="px-3 py-2.5">Risk</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[var(--border)]">
+                {visibleRows.map(({ product, signals }) => {
+                  const selected = product.productId === selectedProduct?.productId;
 
-                return (
-                  <Link
-                    key={product.productId}
-                    className={[
-                      "grid grid-cols-[1.4fr_0.7fr_0.7fr_0.7fr_0.7fr] items-center px-5 py-3.5 text-sm transition",
-                      selected
-                        ? "bg-[var(--target-red-soft)]"
-                        : "hover:bg-[var(--surface-subtle)]",
-                    ].join(" ")}
-                    href={`/inventory?q=${encodeURIComponent(query)}&productId=${encodeURIComponent(
-                      product.productId,
-                    )}`}
-                  >
-                    <span className="min-w-0 pr-3">
-                      <span className="line-clamp-1 font-medium text-[var(--target-ink)]">
-                        {product.title}
-                      </span>
-                      <span className="mt-0.5 block text-xs text-[var(--muted)]">
-                        {product.primaryCategory ?? "Uncategorized"} &middot;{" "}
-                        {formatCurrency(product.finalPrice, product.currency)}
-                      </span>
-                    </span>
-                    <span className="text-[var(--target-ink)]">{signals.stockOnHand}</span>
-                    <span className="text-[var(--target-ink)]">{signals.incomingUnits}</span>
-                    <span className="text-[var(--target-ink)]">{signals.weeklySales}</span>
-                    <span>
-                      <span className={riskClassName(signals.inventoryRisk)}>
-                        {signals.inventoryRisk}
-                      </span>
-                    </span>
-                  </Link>
-                );
-              })}
-            </div>
+                  return (
+                    <tr
+                      key={product.productId}
+                      className={selected ? "bg-[var(--target-red-soft)]" : undefined}
+                    >
+                      <td className="max-w-[24rem] px-5 py-3.5">
+                        <Link
+                          className="block hover:text-[var(--target-red)]"
+                          href={`/inventory?q=${encodeURIComponent(
+                            query,
+                          )}&productId=${encodeURIComponent(product.productId)}`}
+                        >
+                          <span className="line-clamp-1 font-medium text-[var(--target-ink)]">
+                            {product.title}
+                          </span>
+                          <span className="mt-0.5 block text-xs text-[var(--muted)]">
+                            {product.primaryCategory ?? "Uncategorized"} &middot;{" "}
+                            {formatCurrency(product.finalPrice, product.currency)}
+                          </span>
+                        </Link>
+                      </td>
+                      <td className="px-3 py-3.5 text-[var(--target-ink)]">
+                        {signals.stockOnHand} on hand
+                        <span className="block text-xs text-[var(--muted)]">
+                          {signals.incomingUnits} incoming
+                        </span>
+                      </td>
+                      <td className="px-3 py-3.5 text-[var(--target-ink)]">
+                        {signals.reorderPoint}
+                      </td>
+                      <td className="px-3 py-3.5 text-[var(--target-ink)]">
+                        {signals.weeklySales} weekly
+                      </td>
+                      <td className="px-3 py-3.5">
+                        <span className={riskClassName(signals.inventoryRisk)}>
+                          {signals.inventoryRisk}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         </section>
 

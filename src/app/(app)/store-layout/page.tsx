@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { Sparkles, Store } from "lucide-react";
+import { Store } from "lucide-react";
 
 import { cn } from "@/components/cn";
 
@@ -227,7 +227,7 @@ export default function StoreLayoutPage() {
                 </h2>
               </div>
               <span className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-[var(--target-red-soft)] text-[var(--target-red)]">
-                <Sparkles className="h-4 w-4" />
+                <Store className="h-4 w-4" />
               </span>
             </div>
             <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">

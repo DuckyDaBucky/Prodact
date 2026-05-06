@@ -1,9 +1,4 @@
-import {
-  ArrowUpRight,
-  Clock3,
-  ShoppingBag,
-  Users,
-} from "lucide-react";
+import { Clock3, ShoppingBag, Users } from "lucide-react";
 
 import {
   deriveProductSignals,
@@ -33,7 +28,6 @@ function buildMetricCards(products: Awaited<ReturnType<typeof listDemoProducts>>
       value: formatCurrency(revenue),
       detail: "Calculated from seeded price and sales velocity signals",
       icon: ShoppingBag,
-      delta: "+12.4%",
       featured: true,
     },
     {
@@ -42,7 +36,6 @@ function buildMetricCards(products: Awaited<ReturnType<typeof listDemoProducts>>
       value: formatNumber(customers),
       detail: "Estimated shoppers served by tracked products",
       icon: Users,
-      delta: "+5.8%",
     },
     {
       title: "Refunds / loss",
@@ -50,7 +43,6 @@ function buildMetricCards(products: Awaited<ReturnType<typeof listDemoProducts>>
       value: formatNumber(returns),
       detail: "Derived from sales velocity and return-rate signals",
       icon: Clock3,
-      delta: "-1.2%",
     },
   ];
 }
@@ -223,6 +215,15 @@ export default async function StorePerformancePage() {
     .map((product) => ({ product, signals: deriveProductSignals(product) }))
     .sort((left, right) => right.signals.weeklySales - left.signals.weeklySales)
     .slice(0, 4);
+  const orderCount = products.reduce(
+    (total, product) => total + deriveProductSignals(product).weeklySales,
+    0,
+  );
+  const sidebarRows = [
+    { label: "Products", value: formatNumber(products.length) },
+    { label: "Orders", value: formatNumber(orderCount) },
+    { label: "Customers", value: metricCards[1]?.value ?? "0" },
+  ];
 
   return (
     <section className="space-y-5">
@@ -262,7 +263,6 @@ export default async function StorePerformancePage() {
       <div className="grid gap-3 md:grid-cols-3">
         {metricCards.map((card) => {
           const Icon = card.icon;
-          const isPositive = card.delta.startsWith("+");
 
           return (
             <article
@@ -282,20 +282,6 @@ export default async function StorePerformancePage() {
                   }
                 >
                   <Icon className="h-4 w-4" />
-                </span>
-                <span
-                  className={
-                    isPositive
-                      ? card.featured
-                        ? "inline-flex items-center gap-0.5 rounded-md bg-emerald-500/20 px-1.5 py-0.5 text-[11px] font-semibold text-emerald-200"
-                        : "inline-flex items-center gap-0.5 rounded-md bg-emerald-50 px-1.5 py-0.5 text-[11px] font-semibold text-emerald-700"
-                      : "inline-flex items-center gap-0.5 rounded-md bg-red-50 px-1.5 py-0.5 text-[11px] font-semibold text-red-700"
-                  }
-                >
-                  <ArrowUpRight
-                    className={`h-3 w-3 ${isPositive ? "" : "rotate-90"}`}
-                  />
-                  {card.delta}
                 </span>
               </div>
               <div className="mt-5">
@@ -339,6 +325,17 @@ export default async function StorePerformancePage() {
           </p>
           <div className="mt-2 rounded-lg bg-[var(--surface)] px-3 py-2 text-sm font-semibold text-[var(--target-ink)] shadow-[var(--shadow-sm)]">
             Overview
+          </div>
+          <div className="mt-3 space-y-1.5">
+            {sidebarRows.map((row) => (
+              <div
+                key={row.label}
+                className="flex items-center justify-between rounded-lg px-3 py-2 text-xs text-[var(--muted-strong)]"
+              >
+                <span>{row.label}</span>
+                <span className="font-semibold text-[var(--target-ink)]">{row.value}</span>
+              </div>
+            ))}
           </div>
         </aside>
 
@@ -395,7 +392,7 @@ export default async function StorePerformancePage() {
             ))}
             {topProducts.length === 0 ? (
               <li className="rounded-md border border-dashed border-[var(--border)] bg-[var(--surface-subtle)] p-3 text-xs text-[var(--muted)]">
-                No products available — run the seed script to populate.
+                No products available - run the seed script to populate.
               </li>
             ) : null}
           </ol>
